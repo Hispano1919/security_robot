@@ -648,7 +648,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/kobuki_ros/kobuki/kobuki_description/meshes/main_body.dae</uri>
+              <uri>model://main_body.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -1057,7 +1057,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/kobuki_ros/kobuki/kobuki_description/meshes/wheel.dae</uri>
+              <uri>model://wheel.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -1139,7 +1139,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/kobuki_ros/kobuki/kobuki_description/meshes/wheel.dae</uri>
+              <uri>model://wheel.dae</uri>
             </mesh>
           </geometry>
         </visual>
