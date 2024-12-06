@@ -1,6 +1,6 @@
 <launch>
   <arg name="gui"        default="true"/>
-  <env name="GAZEBO_MODEL_PATH" value="$(find security_robot)/models" />
+  <env name="GAZEBO_MODEL_PATH" value="$(find security_robot)/models:$(find turtlebot_description)/meshes" />
   <arg name="world_file" default="$(find security_robot)/worlds/security_world.world"/>
   <arg name="extra_gazebo_args" default="--verbose"/>
   <arg name="base"       value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->

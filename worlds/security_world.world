@@ -252,7 +252,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/plate_simple.stl</uri>
+              <uri>model://stacks/hexagons/plate_simple.stl</uri>
             </mesh>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -274,7 +274,7 @@
           <geometry>
             <mesh>
               <scale>0.001 0.001 0.001</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/plate_simple.stl</uri>
+              <uri>model://stacks/hexagons/plate_simple.stl</uri>
             </mesh>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -657,7 +657,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/sensors/xtion_pro_camera.dae</uri>
+              <uri>model://sensors/xtion_pro_camera.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -666,7 +666,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/sensors/xtion_pro_stack.dae</uri>
+              <uri>model://sensors/xtion_pro_stack.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -675,7 +675,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/plate_bottom.dae</uri>
+              <uri>model://stacks/hexagons/plate_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -684,7 +684,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/plate_middle.dae</uri>
+              <uri>model://stacks/hexagons/plate_middle.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -693,7 +693,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/plate_top.dae</uri>
+              <uri>model://stacks/hexagons/plate_top.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -702,7 +702,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -711,7 +711,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -720,7 +720,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -729,7 +729,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -738,7 +738,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -747,7 +747,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_bottom.dae</uri>
+              <uri>model://stacks/hexagons/pole_bottom.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -756,7 +756,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_kinect.dae</uri>
+              <uri>model://stacks/hexagons/pole_kinect.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -765,7 +765,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_kinect.dae</uri>
+              <uri>model://stacks/hexagons/pole_kinect.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -774,7 +774,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_middle.dae</uri>
+              <uri>model://stacks/hexagons/pole_middle.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -783,7 +783,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_middle.dae</uri>
+              <uri>model://stacks/hexagons/pole_middle.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -792,7 +792,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_middle.dae</uri>
+              <uri>model://stacks/hexagons/pole_middle.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -801,7 +801,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_middle.dae</uri>
+              <uri>model://stacks/hexagons/pole_middle.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -810,7 +810,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_top.dae</uri>
+              <uri>model://stacks/hexagons/pole_top.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -819,7 +819,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_top.dae</uri>
+              <uri>model://stacks/hexagons/pole_top.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -828,7 +828,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_top.dae</uri>
+              <uri>model://stacks/hexagons/pole_top.dae</uri>
             </mesh>
           </geometry>
         </visual>
@@ -837,7 +837,7 @@
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
-              <uri>/home/asahel/tb2_ws/src/turtlebot2/turtlebot/turtlebot_description/meshes/stacks/hexagons/pole_top.dae</uri>
+              <uri>model://stacks/hexagons/pole_top.dae</uri>
             </mesh>
           </geometry>
         </visual>
