@@ -1,7 +1,8 @@
 <launch>
   <arg name="gui"        default="true"/>
+  <env name="GAZEBO_MODEL_PATH" value="$(find security_robot)/models" />
   <arg name="world_file" default="$(find security_robot)/worlds/security_world.world"/>
-
+  <arg name="extra_gazebo_args" default="--verbose"/>
   <arg name="base"       value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
   <arg name="battery"    value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
   <arg name="stacks"     value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons -->
@@ -12,6 +13,7 @@
     <arg name="debug" value="false"/>
     <arg name="gui" value="$(arg gui)" />
     <arg name="world_name" value="$(arg world_file)"/>
+    <arg name="extra_gazebo_args" default="$(arg extra_gazebo_args)"/>
   </include>
 
   <include file="$(find turtlebot_gazebo)/launch/includes/$(arg base).launch.xml">
