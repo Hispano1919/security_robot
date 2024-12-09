@@ -12,6 +12,7 @@ import mediapipe as mp
 import numpy as np
 import math
 
+from main import TOPIC_COMMAND, TOPIC_RGBCAM
 # /robot_command_follow
 KP_SPEED = 0.4
 MIN_SPEED = 0.1
@@ -32,9 +33,9 @@ class GestureDetector:
         self.mp_drawing = mp.solutions.drawing_utils
 
         self.image_sub = None      
-        self.cmd_pub = rospy.Publisher('/robot_command', String, queue_size=10)
+        self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10)
 
-        rospy.Subscriber('/robot_command', String, self.follow_callback)
+        rospy.Subscriber(TOPIC_COMMAND, String, self.follow_callback)
         
         rospy.loginfo("Gesture control waiting...")
 
@@ -43,7 +44,7 @@ class GestureDetector:
             self.is_active = True
             if self.simulation:
                 self.cap = cv2.VideoCapture(0)
-            self.image_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.image_callback)
+            self.image_sub = rospy.Subscriber(TOPIC_RGBCAM, Image, self.image_callback)
             rospy.loginfo("Visual control ON")
         elif msg.data == "stop_follow" and self.is_active:
             self.is_active = False
@@ -141,7 +142,6 @@ class GestureDetector:
         if index_down and middle_down and ring_folded and pinky_folded:
             gesture = "away"
 
-        print(gesture)
         return gesture
    
 rospy.init_node('gesture_detector')

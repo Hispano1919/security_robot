@@ -15,7 +15,7 @@ TARGET_DISTANCE = 1.5  # Distancia deseada en metros
 LINEAR_GAIN = 0.5  # Ganancia para el control de la velocidad lineal
 ANGULAR_GAIN = 0.005  # Ganancia para el control de la velocidad angular
 MAX_VSPEED = 1
-MAX_WSPEED = 0.3
+MAX_WSPEED = 0.5
 
 class RobotControl:
     def __init__(self):

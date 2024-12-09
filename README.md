@@ -98,6 +98,16 @@ Para usar este paquete es conveniente seguir estos pasos, cada uno en una termin
    ```
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- ROADMAP -->
+## Tareas
+
+- [X] Reconocimiento y seguimiento de personas
+- [X] Navegación autónoma patrulla aleatoria
+- [X] Navegación a un punto concreto
+- [ ] Guardar un perimetro entorno a un punto
+- [ ] Segmentación por áreas
+- [ ] Patrulla por ruta predefinida
+- [ ] Interfaz gráfica
 
 <!-- ACKNOWLEDGMENTS -->
 ## Participantes
