@@ -1,11 +1,8 @@
 import rospy
 from sensor_msgs.msg import Image
-import cv_bridge
 from geometry_msgs.msg import Point
 from std_msgs.msg import String
-import cv2
 import numpy as np
-import mediapipe as mp
 
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import actionlib
@@ -31,6 +28,46 @@ class QRMoveNode():
             self.clientAvailable = False
             rospy.logerr("'move_base' server not available")
 
+    def start(self, place):
+        
+        self.place = place
+        rospy.init_node('QR_Waypoint_Node')
+        rospy.spin()
+        self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
+        self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
+        
+        # Suscriptor al tópico /person_pose
+        self.cmd = None
+        self.log_pub.publish("[INFO] MOVE STATE: Started QR Waypoint node")
+        
+        self.execute()
+        
+    def stop(self, status):
+        
+        self.log_pub.publish("[INFO] MOVE STATE: Stopped QR Waypoint node")
+        self.subCmd.unregister()  
+        self.timer.shutdown()
+        self.cmd_pub.publish(status)
+        
+        rospy.signal_shutdown("Stopping QR Waypoint Move Node")
+        
+    def execute(self):
+        rate = rospy.Rate(0.1)
+        self.update_waypoints_from_file(WAYPOINT_PATH, def_waypoints)
+        waypoint_name = self.place
+        waypoint = None
+        waypoint = next((w for w in def_waypoints if w[0] == waypoint_name), None)
+        
+        # Si no existe, se cancela la orden de movimiento
+        if waypoint == None:
+            self.log_pub.publish(f"[INFO] MOVE STATE: {waypoint_name} not found")
+            self.timer.shutdown()
+            return 'aborted'
+        
+        while not rospy.is_shutdown():
+            self.move_to_qrWaypoint()
+            rate.sleep()
+            
     def update_waypoints_from_file(self, filename, waypoints):
         """
         Funcion para leer el fichero de waypoints y actualizar la lista
@@ -67,20 +104,11 @@ class QRMoveNode():
         self.log_pub.publish(self.log_msg)
 
     def cmd_callback(self, msg):
-
-        if ":" in msg.data: 
-            cmd, self.place = msg.data.split(":")
-        else:
-            cmd = msg.data
             
-        if cmd == STOP_MOVE_CMD:
+        if msg.data == STOP_MOVE_CMD:
             self.active = False
             self.set_current_position_as_goal()
             
-        elif START_MOVE_CMD in cmd:
-            self.active == True
-            self.move_to_qrWaypoint()
-
     def set_current_position_as_goal(self):
         """Establece la posición actual del robot como un nuevo objetivo."""
         rospy.loginfo("Obteniendo la posición actual del robot...")
@@ -111,10 +139,9 @@ class QRMoveNode():
         # Opcional: Esperar a que el cliente confirme que el objetivo ha sido alcanzado
         self.client.wait_for_result()
         rospy.loginfo("Robot detenido en la posición actual.")
-        self.goal_cancel = False
+        self.goal_cancel = True
         
     def move_to_qrWaypoint(self):
-        
         self.log_msg = None
         self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
         self.timer = rospy.Timer(rospy.Duration(10), self.publish_message)
@@ -122,7 +149,6 @@ class QRMoveNode():
         # Obtiene el waypoint deseado
         self.update_waypoints_from_file(WAYPOINT_PATH, def_waypoints)
         waypoint_name = self.place
-        print(def_waypoints)
         waypoint = None
         waypoint = next((w for w in def_waypoints if w[0] == waypoint_name), None)
         
@@ -130,17 +156,17 @@ class QRMoveNode():
         if waypoint == None:
             self.log_pub.publish(f"[INFO] MOVE STATE: {waypoint_name} not found")
             self.timer.shutdown()
-            return 'aborted'
+            self.stop(NODE_FAILURE)
         
         self.log_msg = f"[INFO] MOVE STATE: Moving to {waypoint_name}..."
         output = self.move_to_goal(waypoint)
         
         if output == "succeeded":
             self.log_pub.publish(f"[INFO] MOVE STATE: {waypoint_name} reached")
-            self.cmd_pub.publish(NODE_SUCCEED)
+            self.stop(NODE_SUCCEED)
         elif output == "aborted":
             self.log_pub.publish(f"[INFO] MOVE STATE: {waypoint_name} not found")
-            self.cmd_pub.publish(NODE_FAILURE)
+            self.stop(NODE_FAILURE)
            
     def move_to_goal(self, pose):            
         # Si el cliente move_base esta activo

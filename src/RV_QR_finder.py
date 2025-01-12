@@ -20,10 +20,10 @@ import rospkg
 
 
 
-from APP_main import WAYPOINT_PATH, TOPIC_VEL, TOPIC_RGBCAM, TOPIC_LOGS, TOPIC_PRIMG, TOPIC_COMMAND, TOPIC_AMCLPOS
+from APP_main import TOPIC_VEL, TOPIC_RGBCAM, TOPIC_LOGS, TOPIC_PRIMG, TOPIC_COMMAND, TOPIC_AMCLPOS
+from APP_main import STOP_MOVE_CMD, WAYPOINT_PATH, NODE_SUCCEED, NODE_FAILURE
 
-
-class QRCodeApproachLogger:
+class QRFinderNode():
     def __init__(self):
         # Inicializar nodo
         rospy.init_node('qr_code_approach_logger', anonymous=True)
@@ -37,20 +37,6 @@ class QRCodeApproachLogger:
             "x_min": -6.0, "x_max": 6.0,
             "y_min": -6.0, "y_max": 6.0
         }
-
-
-        
-
-        #WIP
-        rospack = rospkg.RosPack()
-        package_path = rospack.get_path('security_robot')
-        folder_path = package_path + "/nav_maps"
-        yaml_file = "mapa_campo.yaml"
-
-       
-        #map_path = "../nav_maps/mapa_campo.yaml"
-       
-        self.map_limits = self.get_map_limits(folder_path,yaml_file)
         
         # Variables
         self.bridge = CvBridge()
@@ -66,19 +52,53 @@ class QRCodeApproachLogger:
         self.goal_cancel = False
         # Publicadores y suscriptores
         self.cmd_vel_pub = rospy.Publisher(TOPIC_VEL, Twist, queue_size=10)
-        
-        rospy.Subscriber(TOPIC_RGBCAM, Image, self.image_callback)
-        rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
-        rospy.Subscriber(TOPIC_COMMAND, String, self.command_callback)
+        self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, Twist, queue_size=10)
+        self.img_rgb_sub = rospy.Subscriber(TOPIC_RGBCAM, Image, self.image_callback)
+        self.pose_sub = rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String, self.command_callback)
         self.image_pub = rospy.Publisher(TOPIC_PRIMG, Image, queue_size=10) 
+        self.log_pub = rospy.Publisher(TOPIC_LOGS, Image, queue_size=10) 
 
+        rospy.loginfo("Nodo QR Code Approach Logger inicializado.")
+
+    def start(self, map_name):
+        """Inicia el movimiento aleatorio por el mapa."""
+        rospy.loginfo("Iniciando movimiento aleatorio por el mapa buscando QRs...")
+        rospy.spin()
+
+        rospack = rospkg.RosPack()
+        package_path = rospack.get_path('security_robot')
+        folder_path = package_path + "/nav_maps"
+        yaml_file = map_name + ".yaml"
+        
+        qrfolder_path = package_path + "/output_logs"
+        self.log_file_path = qrfolder_path + "/" + map_name + ".qrlogs"
+        self.map_limits = self.get_map_limits(folder_path, yaml_file)
+        
         # Crear archivo o conservar contenido existente
         if not os.path.exists(self.log_file_path):
             with open(self.log_file_path, "w") as f:
                 f.write("QR Code, Position (x, y, z), Orientation (x, y, z, w)\n")
+                
+        self.execute()
+        
+    def stop(self):
+        self.log_pub.publish("[INFO] QR FINDER STATE: Stopped node")
 
-        rospy.loginfo("Nodo QR Code Approach Logger inicializado.")
-
+        self.img_rgb_sub.unregister()
+        self.cmd_sub.unregister()
+        self.pose_sub.unregister()
+        
+        self.cmd_pub.publish(NODE_SUCCEED)
+        
+        rospy.signal_shutdown("Stopping QR finder Node")
+        
+    def execute(self):
+        while not rospy.is_shutdown():
+            if self.target_qr is None:
+                self.move_to_random_point()
+            rospy.sleep(1)
+            
     def get_map_limits(self,path,filename):
     # Leer archivo YAML
         map_yaml_path=path+"/"+filename
@@ -111,13 +131,9 @@ class QRCodeApproachLogger:
         # Actualizar la posición y orientación del robot
         self.current_pose = msg.pose.pose
 
-    def command_callback(self, msg):
-        # Comandos para activar o desactivar el procesamiento
-        if msg.data == "start":
-            rospy.loginfo("Activando detección de QR.")
-            self.active = True
-        elif msg.data == "stop":
-            rospy.loginfo("Desactivando detección de QR.")
+    def cmd_callback(self, msg):
+            
+        if msg.data == STOP_MOVE_CMD:
             self.active = False
             self.set_current_position_as_goal()
 
@@ -304,17 +320,5 @@ class QRCodeApproachLogger:
         twist.angular.z = 0.0
         self.cmd_vel_pub.publish(twist)
 
-    def start(self):
-        """Inicia el movimiento aleatorio por el mapa."""
-        rospy.loginfo("Iniciando movimiento aleatorio por el mapa buscando QRs...")
-        while not rospy.is_shutdown():
-            if self.target_qr is None:
-                self.move_to_random_point()
-            rospy.sleep(1)
-
-if __name__ == "__main__":
-    try:
-        navigator = QRCodeApproachLogger()
-        navigator.start()
-    except rospy.ROSInterruptException:
-        rospy.loginfo("Nodo terminado.")
+    
+        

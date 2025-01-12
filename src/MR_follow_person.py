@@ -16,7 +16,7 @@ from APP_main import START_DETECTION_CMD, STOP_DETECTION_CMD, START_FOLLOW_CMD, 
 from APP_main import MAX_VSPEED, MAX_WSPEED, ANGULAR_GAIN, LINEAR_GAIN, TARGET_DISTANCE, DISTANCE_ERROR, CENTER_TOLERANCE_X
 
 
-class FollowPerson():
+class FollowPersonNode():
     def __init__(self):
 
         # Publicador para el tópico de velocidad
@@ -39,8 +39,10 @@ class FollowPerson():
         # Publish the message
         self.log_pub.publish(self.log_msg)
 
-    def execute(self):
+    def start(self):
         
+        rospy.init_node('Follow_Person_Node')
+        rospy.spin()
         self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
         self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
         
@@ -48,25 +50,33 @@ class FollowPerson():
         self.cmd = None
         self.subPerson = rospy.Subscriber(TOPIC_PERSONPOSE, Point, self.person_pose_callback)
         self.cmd_vision_pub.publish(START_DETECTION_CMD)
-        self.log_pub.publish("[INFO] FOLLOW STATE: Started state")
-        rate = rospy.Rate(0.1)
+        self.log_pub.publish("[INFO] FOLLOW STATE: Started node")
+        
+        self.execute()
 
+    def stop(self):
+        self.log_pub.publish("[INFO] FOLLOW STATE: Stopped node")
+        self.subPerson.unregister()
+        self.subCmd.unregister()
+
+        self.dynamicDist = 0
+        self.last_error = 0
+        self.followPerson = False     
+        
+        self.cmd_vision_pub.publish(STOP_DETECTION_CMD)
+        self.timer.shutdown()
+        self.cmd_pub.publish(NODE_SUCCEED)
+        
+        rospy.signal_shutdown("Stopping Follow Node")
+        
+    def execute(self):
+        rate = rospy.Rate(0.1)
         while not rospy.is_shutdown() and self.followPerson:
             rate.sleep()
 
             if self.cmd == STOP_FOLLOW_CMD:
-                self.log_pub.publish("[INFO] FOLLOW STATE: Stopped state")
-                self.subPerson.unregister()
-                self.subCmd.unregister()
-
-                self.dynamicDist = 0
-                self.last_error = 0
-                self.followPerson = False     
+                self.stop()
                 
-                self.cmd_vision_pub.publish(STOP_DETECTION_CMD)
-                self.timer.shutdown()
-                self.cmd_pub.publish(NODE_SUCCEED)
-
     def cmd_callback(self, msg):
    
         if msg.data == MOVE_CLOSER_CMD:
@@ -75,9 +85,6 @@ class FollowPerson():
             self.dynamicDist = self.dynamicDist + 0.5
         elif msg.data == RESET_DIST_CMD:
             self.dynamicDist = 0
-            
-        if msg.data == START_FOLLOW_CMD:
-            self.execute()
 
         self.cmd = msg.data
 

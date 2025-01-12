@@ -232,8 +232,7 @@ class VoiceControl:
         except Exception as e:
             self.log_and_speak(f"Error durante la ejecución: {e}")
 
-
-rospy.init_node('voice_command_processor')
+rospy.init_node('Voice_command_node')
 processor = VoiceControl()
 processor.main_loop()
 
