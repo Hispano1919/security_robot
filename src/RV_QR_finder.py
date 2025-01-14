@@ -20,8 +20,8 @@ import rospkg
 
 
 
-from APP_main import TOPIC_VEL, TOPIC_RGBCAM, TOPIC_LOGS, TOPIC_PRIMG, TOPIC_COMMAND, TOPIC_AMCLPOS
-from APP_main import STOP_MOVE_CMD, WAYPOINT_PATH, NODE_SUCCEED, NODE_FAILURE
+from APP_config import TOPIC_VEL, TOPIC_RGBCAM, TOPIC_LOGS, TOPIC_PRIMG, TOPIC_COMMAND, TOPIC_AMCLPOS
+from APP_config import STOP_MOVE_CMD, WAYPOINT_PATH, NODE_SUCCEED, NODE_FAILURE, MAP_NAME
 
 class QRFinderNode():
     def __init__(self):
@@ -61,7 +61,7 @@ class QRFinderNode():
 
         rospy.loginfo("Nodo QR Code Approach Logger inicializado.")
 
-    def start(self, map_name):
+    def start(self):
         """Inicia el movimiento aleatorio por el mapa."""
         rospy.loginfo("Iniciando movimiento aleatorio por el mapa buscando QRs...")
         rospy.spin()
@@ -69,10 +69,10 @@ class QRFinderNode():
         rospack = rospkg.RosPack()
         package_path = rospack.get_path('security_robot')
         folder_path = package_path + "/nav_maps"
-        yaml_file = map_name + ".yaml"
+        yaml_file = MAP_NAME + ".yaml"
         
         qrfolder_path = package_path + "/output_logs"
-        self.log_file_path = qrfolder_path + "/" + map_name + ".qrlogs"
+        self.log_file_path = qrfolder_path + "/" + MAP_NAME + ".qrlog"
         self.map_limits = self.get_map_limits(folder_path, yaml_file)
         
         # Crear archivo o conservar contenido existente

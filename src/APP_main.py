@@ -13,6 +13,9 @@ import math
 import random
 import numpy as np
 
+import subprocess
+import signal
+
 from smach import State, StateMachine
 from smach_ros import SimpleActionState
 
@@ -26,84 +29,14 @@ from geometry_msgs.msg import Twist, Point
 import actionlib
 import re
 
-from MR_follow_person import FollowPersonNode
-from MR_move_to_qrWaypoint import QRMoveNode
-from RV_QR_finder import QRFinderNode
-from MR_patrol_area import PatrolAreaNode
+
+
 #  rostopic pub /robot_cmd std_msgs/String "start_detection"
 
-""" ******************************************************************************************************
-    Definicion de macros y variables globales
-"""
-TOPIC_VEL = "/cmd_vel_mux/input/navi"
-TOPIC_SCAN = '/scan'
-TOPIC_AMCLPOS = '/amcl_pose'
-TOPIC_COMMAND = '/robot_cmd'
-TOPIC_DETECTOR = '/detection_control'
-TOPIC_IMAGE = '/image'
-TOPIC_PERSONPOSE = '/person_pose'
-TOPIC_RGBCAM = '/camera/rgb/image_raw'
-TOPIC_DEPTHCAM = '/camera/depth/image_raw'
-TOPIC_LOGS = '/robot_logs'
-TOPIC_PRIMG = '/processed_image'
-
-# MENSAJES
-MOVE_CLOSER_CMD = "move_closer"
-MOVE_AWAY_CMD = "move_away"
-RESET_DIST_CMD = "reset_dist"
-
-START_DETECTION_CMD = "start_detection"
-STOP_DETECTION_CMD = "stop_detection"
-
-START_FOLLOW_CMD = "start_follow_person"
-STOP_FOLLOW_CMD = "stop_follow_person"
-
-START_MOVE_CMD = "start_move_robot"
-STOP_MOVE_CMD = "stop_move_robot"
-
-START_VOICE_CMD = "start_voice_control"
-STOP_VOICE_CMD = "stop_voice_control"
-
-NODE_SUCCEED = "node_succeed"
-NODE_FAILURE = "node_failure"
-
-SHUTDOWN_CMD = "goodbye"
-IDENTIFY_CMD = "identify_command"
-
-# ESTADOS
-IDLE_ST = "idle_state"
-FOLLOW_ST = "follow_state"
-MOVE_ST = "move_state"
-HANDLE_ST = "handle_state"
-SHUTDOWN_ST = "shutdown_state"
-BASE_ST = "base_state"
-PATROL_ST = "patrol_state"
-QRFINDER_ST = "qrfinder_state"
-
-# PATH
-WAYPOINT_PATH = "/home/asahel/ROS_WS/src/security_robot/output_files/qr_code_log.txt"
-MAP_NAME = "casa_grande"
-
-# Parámetros de control
-CENTER_TOLERANCE_X = 50  # Tolerancia en píxeles para el eje X
-TARGET_DISTANCE = 1.5  # Distancia deseada en metros
-DISTANCE_ERROR = 0.1
-LINEAR_GAIN = 0.5  # Ganancia para el control de la velocidad lineal
-ANGULAR_GAIN = 0.001  # Ganancia para el control de la velocidad angular
-MAX_VSPEED = 0.5
-MAX_WSPEED = 0.5
-
-states = [IDLE_ST, FOLLOW_ST, MOVE_ST, SHUTDOWN_ST, PATROL_ST, QRFINDER_ST]
-rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion)\b$"
-
-# Definir los waypoints a los que el robot debe moverse
-def_waypoints = [
-    ['habitacion', (-0.3, 4.4), (0.0, 0.0, 0.0, 1.0)],  # Nombre, posición, orientación
-    ['estacion', (-2.06, 5.82), (0.0, 0.0, 0.0, 1.0)],  # Ejemplo con otro punto
-    ['wc', (-3.6, 4.6), (0.0, 0.0, 0, 1.0)],
-    ['salon', (-3.6, 0.7), (0.0, 0.0, 0, 1.0)],
-    ['cocina', (0.0, 1.6), (0.0, 0.0, 0, 1.0)],
-]
+from APP_config import TOPIC_LOGS, TOPIC_COMMAND
+from APP_config import IDLE_ST, HANDLE_ST, FOLLOW_ST, MOVE_ST, PATROL_ST, QRFINDER_ST, SHUTDOWN_ST
+from APP_config import STOP_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, STOP_FOLLOW_CMD, STOP_FOLLOW_NODE, STOP_MOVE_NODE
+from APP_config import MAP_NAME, rooms, states 
 
 actual_state = IDLE_ST
 """ ******************************************************************************************************
@@ -113,60 +46,49 @@ class MoveState(State):
     def __init__(self):
         global states
         self.states = [state for state in states if state != MOVE_ST or state != PATROL_ST]
-        State.__init__(self, outcomes=['succeeded', 'aborted', 'preempted'], input_keys=['input_data'], output_keys=['output_data'])
-        self.clientAvailable = True
-        self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        State.__init__(self, outcomes=[HANDLE_ST], input_keys=['input_data'], output_keys=['output_data'])
         self.cmd = None
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)  
+        self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10)  
 
-        self.log_msg = "[INFO] MOVE STATE: Waiting..."
-
-        # Espera un máximo de 10 segundos para que el servidor esté disponible
-        if not self.client.wait_for_server(timeout=rospy.Duration(5)):
-            self.clientAvailable = False
-            rospy.logerr("'move_base' server not available")
+        self.move_node_process = None
 
     def execute(self, userdata):
-        
-        self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
-        self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
+        global actual_state
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
         
         # Suscriptor al topico /person_pose
         self.cmd = None
         self.log_pub.publish("[INFO] MOVE STATE: Started state")
         rate = rospy.Rate(0.1)
-
-        if userdata.input_data in rooms and actual_state == MOVE_ST:
-            move_node = QRMoveNode()
-            move_node.start()    
+        
+        print(userdata.input_data)
+        if userdata.input_data in rooms:
+            self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
+            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
         elif userdata.input_data in rooms and actual_state == PATROL_ST:
-            move_node = PatrolAreaNode()
-            move_node.start()
-        elif userdata.input_data == "route" and actual_state == PATROL_ST:
-            move_node = PatrolAreaNode()
-            move_node.start()
+            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
+        elif userdata.input_data == "route" and actual_state == PATROL_ST: 
+            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
             
         while not rospy.is_shutdown():
             rate.sleep()
 
-            if self.cmd == STOP_MOVE_CMD or self.cmd in self.states or MOVE_ST in self.cmd or PATROL_ST in self.cmd:
- 
-                while(not move_node.goal_cancel):
-                    rate.sleep()
-                    
-                move_node.stop()
-            
-                self.log_pub.publish("[INFO] MOVE STATE: Stopped state")
+            if self.cmd is not None:
+                if self.cmd == STOP_MOVE_NODE:
+                    break
+                elif self.cmd in self.states:
+                    self.cmd_pub.publish(STOP_MOVE_CMD)    
+                
+        self.log_pub.publish("[INFO] MOVE STATE: Stopped state")
 
-                self.followPerson = False
-                userdata.output_data = None
+        userdata.output_data = None
 
-                if self.cmd in self.states:
-                    userdata.output_data = self.cmd              
+        if self.cmd in self.states:
+            userdata.output_data = self.cmd              
 
-                self.log_pub.publish(f"[EVENT]: MOVE STATE -> IDLE STATE")
-                self.timer.shutdown()
-                return HANDLE_ST
+        self.log_pub.publish(f"[EVENT]: MOVE STATE -> IDLE STATE")
+        return HANDLE_ST
             
     def publish_message(self, event):
         # Publish the message
@@ -175,11 +97,10 @@ class MoveState(State):
     def cmd_callback(self, msg):
 
         if msg.data in self.states:
-            self.abort_movement = True
             rospy.loginfo("[INFO] MOVE STATE: Movement aborted by command.")
             self.log_pub.publish("[INFO] MOVE STATE: Movement aborted by command.")
-            self.cmd = msg.data
-        
+            
+        self.cmd = msg.data
 """ ******************************************************************************************************
    Clase para el estado de seguimiento de personas.
 """  
@@ -196,37 +117,52 @@ class FollowPersonState(State):
         # VARIABLES
         self.followPerson = True
         self.cmd = None
+        self.follow_person_process = None
 
     def execute(self, userdata):
         
-        self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
-        self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
+        #self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
         
         # Suscriptor al tópico /person_pose
         self.cmd = None
         self.log_pub.publish("[INFO] FOLLOW STATE: Started state")
         rate = rospy.Rate(0.1)
 
-        followNode = FollowPersonNode()
-        followNode.start()
-
+        self.start_node()
+        
         while not rospy.is_shutdown() and self.followPerson:
             rate.sleep()
 
-            if self.cmd == STOP_FOLLOW_CMD or self.cmd in self.states or MOVE_ST in self.cmd:
-                self.log_pub.publish("[INFO] FOLLOW STATE: Stopped state")
-
-                self.followPerson = False
-                userdata.output_data = None
-
-                if self.cmd in self.states:
-                    userdata.output_data = self.cmd              
+            if self.cmd is not None:
+                if self.cmd == STOP_FOLLOW_NODE:
+                    break
+                elif self.cmd in self.states:
+                    self.cmd_pub.publish(STOP_FOLLOW_CMD)
+                    break
                 
-                self.cmd_vision_pub.publish(STOP_DETECTION_CMD)
-                self.log_pub.publish(f"[EVENT]: FOLLOW STATE -> IDLE STATE")
-                self.timer.shutdown()
-                return HANDLE_ST
+        self.log_pub.publish("[INFO] FOLLOW STATE: Stopped state")
+        self.followPerson = False
+        userdata.output_data = None
 
+        if self.cmd in self.states:
+            userdata.output_data = self.cmd              
+        
+        self.log_pub.publish(f"[EVENT]: FOLLOW STATE -> IDLE STATE")
+        return HANDLE_ST           
+
+    def start_node(self):
+        self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
+        # Esperar hasta que el proceso esté completamente iniciado
+        
+    def stop_node(self):
+        if self.follow_person_process:
+            # Envía la señal SIGINT para detener el nodo de forma segura
+            self.follow_person_process.send_signal(signal.SIGINT)
+            self.follow_person_process.wait()
+            print("Nodo FollowPerson detenido.")
+            self.follow_person_process = None
+            
     def publish_message(self, event):
         # Publish the message
         self.log_pub.publish(self.log_msg)
@@ -252,7 +188,7 @@ class QRFinderState(State):
 
     def execute(self, userdata):
         
-        self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
         self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
         
         # Suscriptor al tópico /person_pose
@@ -278,8 +214,9 @@ class QRFinderState(State):
                 
                 self.log_pub.publish(f"[EVENT]: QR FINDER STATE -> IDLE STATE")
                 self.timer.shutdown()
-                return HANDLE_ST
-
+                break
+            
+        return HANDLE_ST
     def publish_message(self, event):
         # Publish the message
         self.log_pub.publish(self.log_msg)
@@ -293,9 +230,10 @@ class QRFinderState(State):
 class IdleWait(State):
     def __init__(self):
         global states
+        
         State.__init__(self, outcomes=states, input_keys=['input_data'], output_keys=['output_data'])
         self.cmd = None  # Variable para almacenar el último comando recibido
-        self.subCmd = rospy.Subscriber(TOPIC_COMMAND, String, self.cmd_callback)
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String, self.cmd_callback)
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
 
         self.idleWait = True
@@ -303,6 +241,7 @@ class IdleWait(State):
         self.log_msg = "[INFO] IDLE STATE: Waiting for next state..."
 
     def execute(self, userdata):
+        global actual_state
         rospy.loginfo("[INFO] IDLE STATE: Waiting for next state...")  
         self.timer = rospy.Timer(rospy.Duration(10), self.publish_message)
 
@@ -453,19 +392,16 @@ def main():
         StateMachine.add('MoveState', 
             MoveState(), 
             transitions={
-                'succeeded': 'IdleWait', 
-                'aborted': 'IdleWait',
-                'preempted': 'IdleWait'}, 
+                HANDLE_ST:'IdleWait'},
             remapping={'input_data': 'data'})
         
         # Estado QRFinder, el robot busca de manera aleatoria por el mapa QRs
         StateMachine.add('QRFinder', 
             QRFinderState(), 
             transitions={
-                'succeeded': 'IdleWait', 
-                'aborted': 'IdleWait',
-                'preempted': 'IdleWait'}, 
-            remapping={'input_data': 'data'})
+                HANDLE_ST:'IdleWait'},
+            remapping={'input_data':'data',
+                       'output_data':'data'})
         
     sis = smach_ros.IntrospectionServer('server_name', sm, '/SM_ROOT')
     sis.start()

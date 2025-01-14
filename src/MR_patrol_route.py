@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import rospy
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
@@ -12,8 +15,8 @@ import rospkg
 
 import csv
 
-from APP_main import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
-from APP_main import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
+from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE
 
 class PatrolRouteNode():
     def __init__(self):

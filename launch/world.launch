@@ -1,13 +1,16 @@
 <launch>
+
+  <env name="GAZEBO_MODEL_PATH" value="$(find security_robot)/obj_models:$(find turtlebot_description)/meshes:$(find kobuki_description)/meshes" />
   <arg name="gui"        default="true"/>
-  <env name="GAZEBO_MODEL_PATH" value="$(find security_robot)/models:$(find turtlebot_description)/meshes:$(find kobuki_description)/meshes" />
-  <arg name="world_file" default="$(find security_robot)/worlds/security_world.world"/>
+  <arg name="world_file" default="$(find security_robot)/worlds/casa3.world"/>
   <arg name="extra_gazebo_args" default="--verbose"/>
   <arg name="base"       value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
   <arg name="battery"    value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
   <arg name="stacks"     value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons -->
   <arg name="3d_sensor"  value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro -->
-
+  <arg name="map_file" default="$(find security_robot)/nav_maps/mapa_campo.yaml" />
+  
+<param name="tf_static_filter" value="true" />
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="use_sim_time" value="true"/>
     <arg name="debug" value="false"/>

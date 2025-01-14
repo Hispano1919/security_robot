@@ -40,7 +40,7 @@ source ~/catkin_ws/devel/setup.bash
 source ~/ROS_WS/devel/setup.bash
 
 echo "Launching World..."
-gnome-terminal --title="WORLD" -- bash -c "roslaunch proyecto_servicios world.launch" &
+gnome-terminal --title="WORLD" -- bash -c "roslaunch security_robot world.launch" &
 WORLD_PID=$!  # Guardar el PID del terminal
 
 # Añadir un retardo para permitir que el mundo se cargue
@@ -49,34 +49,34 @@ sleep 10
 
 echo "Launching Navigation..."
 if [ "$RVIZ" == "true" ]; then
-  gnome-terminal --title="NAV" -- bash -c "roslaunch proyecto_servicios navigation.launch rviz:=true" &
+  gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch rviz:=true" &
 else
-  gnome-terminal --title="NAV" -- bash -c "roslaunch proyecto_servicios navigation.launch" &
+  gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch" &
 fi
 
 # Seleccionar el archivo .launch según el argumento
 case "$MODE" in
   heavy)
     echo "Launching Nodes: Heavy..."
-    gnome-terminal --title="NODES_HEAVY" -- bash -c "roslaunch proyecto_servicios nodes_heavy.launch" &
+    gnome-terminal --title="NODES_HEAVY" -- bash -c "roslaunch security_robot nodes_heavy.launch" &
     ;;
   light)
     echo "Launching Nodes: Light..."
-    gnome-terminal --title="NODES_LIGHT" -- bash -c "roslaunch proyecto_servicios nodes_light.launch" &
+    gnome-terminal --title="NODES_LIGHT" -- bash -c "roslaunch security_robot nodes_light.launch" &
     ;;
   minimal)
     echo "Launching Nodes: Minimal..."
-    gnome-terminal --title="NODES_MINIMAL" -- bash -c "roslaunch proyecto_servicios nodes_minimal.launch" &
+    gnome-terminal --title="NODES_MINIMAL" -- bash -c "roslaunch security_robot nodes_minimal.launch" &
     ;;
   qr)
     echo "Launching QR finder"
-    gnome-terminal --title="QR_FINDER" -- bash -c "rosrun proyecto_servicios QR_finder.py" &
+    gnome-terminal --title="QR_FINDER" -- bash -c "rosrun security_robot QR_finder.py" &
     ;;
 esac
 
 if [ "$MOVEPERSON" == "true" ]; then
   echo "Executing move_person node..."
-  gnome-terminal --title="MOVE_PERSON" -- bash -c "rosrun proyecto_servicios move_person.py" &
+  gnome-terminal --title="MOVE_PERSON" -- bash -c "rosrun security_robot APP_move_person.py" &
 fi
 
 # Esperar a que el usuario presione una tecla

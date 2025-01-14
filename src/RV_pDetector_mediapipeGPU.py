@@ -19,7 +19,7 @@ import numpy as np
 import math
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 import time
-from APP_main import TOPIC_PERSONPOSE, TOPIC_COMMAND, START_DETECTION_CMD, STOP_DETECTION_CMD, TOPIC_RGBCAM, TOPIC_DEPTHCAM
+from APP_config import TOPIC_PERSONPOSE, TOPIC_COMMAND, START_DETECTION_CMD, STOP_DETECTION_CMD, TOPIC_RGBCAM, TOPIC_DEPTHCAM
 
 class BlazePoseDetector:
     def __init__(self):

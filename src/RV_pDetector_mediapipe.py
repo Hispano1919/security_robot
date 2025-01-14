@@ -12,7 +12,7 @@ import mediapipe as mp
 
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 
-from APP_main import TOPIC_PERSONPOSE, TOPIC_COMMAND, START_DETECTION_CMD, STOP_DETECTION_CMD, TOPIC_RGBCAM, TOPIC_DEPTHCAM, TOPIC_LOGS
+from APP_config import TOPIC_PERSONPOSE, TOPIC_COMMAND, START_DETECTION_CMD, STOP_DETECTION_CMD, TOPIC_RGBCAM, TOPIC_DEPTHCAM, TOPIC_LOGS
 
 EDGES = {
     (0, 1): 'm', (0, 2): 'c', (1, 3): 'm', (2, 4): 'c', (0, 5): 'm', (0, 6): 'c',

@@ -14,9 +14,9 @@ from scipy.signal import resample
 import re
 import random
 
-from APP_main import TOPIC_COMMAND, TOPIC_LOGS, rooms
-from APP_main import FOLLOW_ST, STOP_FOLLOW_CMD, SHUTDOWN_ST, MOVE_ST, PATROL_ST
-from APP_main import STOP_DETECTION_CMD, START_DETECTION_CMD, STOP_VOICE_CMD, START_VOICE_CMD, IDENTIFY_CMD
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, rooms
+from APP_config import FOLLOW_ST, STOP_FOLLOW_CMD, SHUTDOWN_ST, MOVE_ST, PATROL_ST
+from APP_config import STOP_DETECTION_CMD, START_DETECTION_CMD, STOP_VOICE_CMD, START_VOICE_CMD, IDENTIFY_CMD
 
 activation_cmds = {"hola", "escucha", "escuchame", "oye"}
 
@@ -121,7 +121,7 @@ class VoiceControl:
     def id_person(self):
         
         while self.wait_id:
-            self.log_and_speak("Por favor, indique su nombre y número de identificación.")
+            self.log_and_speak("Indique su nombre")
             name = None
             id_number = None
 
@@ -131,7 +131,7 @@ class VoiceControl:
                 if cmd:
                     name = cmd.lower()
                     if name in self.auth_users:
-                        self.log_and_speak("Ahora, por favor, indique su número de identificación.")
+                        self.log_and_speak("Indique su número de identificación.")
 
                         start_time = time.time()
                         while (time.time() - start_time < self.timeout):
@@ -199,6 +199,10 @@ class VoiceControl:
                                 self.log_and_speak("Patrullando " + lugar)
                                 self.command_pub.publish(PATROL_ST + ":" + lugar)
 
+                            elif "patrulla" in accion or ("patrulla" in accion and "zona" in accion):
+                                self.log_and_speak("Patrullando la ruta")
+                                self.command_pub.publish(PATROL_ST + ":" + "route")
+                                
                             elif "vuelve a la estación" or "descansa" in accion:
                                 self.log_and_speak("Me dirijo a la estación de carga.")
                                 self.command_pub.publish(MOVE_ST + ":" + "estacion")
@@ -208,10 +212,6 @@ class VoiceControl:
                                 self.command_pub.publish(STOP_DETECTION_CMD)
 
                             elif "mírame" in accion or ("enciende" in accion and "camara" in accion):
-                                self.log_and_speak("De acuerdo, enciendo camara.")
-                                self.command_pub.publish(START_DETECTION_CMD)
-
-                            elif "patrulla" in accion or ("enciende" in accion and "camara" in accion):
                                 self.log_and_speak("De acuerdo, enciendo camara.")
                                 self.command_pub.publish(START_DETECTION_CMD)
 

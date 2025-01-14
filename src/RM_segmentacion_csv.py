@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import cv2
 import numpy as np
 import yaml
@@ -141,11 +144,11 @@ def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir
         print(f"Mapa con área {label} restringida y dilatada guardado en {output_path}")
 
 # Rutas de los mapas
-input_map = "casa_3.pgm"  # Cambia esta ruta por tu mapa original
-output_colored_map = "mapa_areas.png"  # Ruta para guardar la imagen coloreada
-yaml_path = "casa_3.yaml"  # Ruta del archivo .yaml
-output_csv_path = "centroides.csv"  # Ruta para guardar el CSV de centroides
-output_dir = "restricted_maps"  # Directorio donde guardar los mapas restringidos
+input_map = "../nav_maps/casa_grande.pgm"  # Cambia esta ruta por tu mapa original
+output_colored_map = "../output_files/mapa_areas.png"  # Ruta para guardar la imagen coloreada
+yaml_path = "../nav_maps/casa_grande.yaml"  # Ruta del archivo .yaml
+output_csv_path = "../output_files/centroides.csv"  # Ruta para guardar el CSV de centroides
+output_dir = "../output_files/restricted_maps"  # Directorio donde guardar los mapas restringidos
 
 # Procesar el mapa para etiquetar áreas
 labels, num_labels, centroids = process_map(input_map, output_colored_map, yaml_path=yaml_path)
