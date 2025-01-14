@@ -6,8 +6,8 @@
   <arg name="sim" default="false" />
   <arg name="bash_gui" default="true" />
   <arg name="bash_title" default="ROBOT_COMMAND_INTERFACE" />
-  
-  <arg name="map_file" default="$(find security_robot)/nav_maps/mapa_campo.yaml" />
+  <arg name="world_name" default="casa3"/>
+  <arg name="map_file" default="$(find security_robot)/nav_maps/$(arg world_name).yaml" />
   <arg name="rviz" default="false" />
   
   <!-- BASH INTERFACE -->

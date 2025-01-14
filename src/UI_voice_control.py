@@ -20,6 +20,7 @@ from APP_config import STOP_DETECTION_CMD, START_DETECTION_CMD, STOP_VOICE_CMD, 
 
 activation_cmds = {"hola", "escucha", "escuchame", "oye"}
 
+
 class VoiceControl:
     def __init__(self):
         self.engine = pyttsx3.init()
@@ -38,8 +39,8 @@ class VoiceControl:
         self.wait_id = True
         self.user_auth = False
         self.timeout = 10
-
-        self.auth_users = {"asahel": "61234", "pepe": "12345", "maria": "54321"}
+        self.start_id = False
+        self.auth_users = {"asa": "seis", "pepe": "tres", "maria": "dos"}
         self.model_path = rospy.get_param('~voice_model', "../trained_models")
 
         if self.model_path == "":
@@ -96,8 +97,8 @@ class VoiceControl:
             rospy.signal_shutdown("Apagando")
 
         elif msg.data == IDENTIFY_CMD:
-            self.id_person()
-
+            self.start_id = False
+            
     def listen_command(self, timeout=30):
         """
         Funcion para aceptar comandos por voz
@@ -120,13 +121,13 @@ class VoiceControl:
             
     def id_person(self):
         
-        while self.wait_id:
+        while self.wait_id and not rospy.is_shutdown():
             self.log_and_speak("Indique su nombre")
             name = None
             id_number = None
 
             start_time = time.time()
-            while (time.time() - start_time < self.timeout):
+            while (time.time() - start_time < self.timeout) and not rospy.is_shutdown():
                 cmd = self.listen_command()
                 if cmd:
                     name = cmd.lower()
@@ -134,7 +135,8 @@ class VoiceControl:
                         self.log_and_speak("Indique su número de identificación.")
 
                         start_time = time.time()
-                        while (time.time() - start_time < self.timeout):
+                        while (time.time() - start_time < self.timeout) and not rospy.is_shutdown():
+                            
                             cmd = self.listen_command()
                             
                             if cmd.isdigit():
@@ -150,8 +152,7 @@ class VoiceControl:
                                 else:
                                     self.log_and_speak("Identificación incorrecta. Acceso denegado.")
                                     self.log_pub.publish(f"[USER_ID]: authentication failed: {name}.")
-                            else:
-                                self.log_and_speak("Por favor, indique un número válido.")
+                                    
                             if not self.wait_id:
                                 break  
                         break
@@ -164,12 +165,12 @@ class VoiceControl:
         try:
             
             with sd.InputStream(callback=self.audio_callback):
-                self.log_and_speak("Escuchando")
+                self.log_and_speak("Hola, te escucho")
 
                 while not rospy.is_shutdown():
                     command = self.listen_command()
-
-                    if "R2-G2" in command or ("r2-g2" in command and activation_cmds in accion):
+                    
+                    if "robot" in command or ("robot" in command and activation_cmds in accion):
                         self.is_active = True
                         coincidencia = re.match(rooms, command)
                     
@@ -181,51 +182,80 @@ class VoiceControl:
                             lugar = None 
 
                         start_time = time.time()
-                        while (time.time() - start_time < self.timeout) and self.is_active:
-                        
-                            if "sígueme" or "ven" or "conmigo" in accion:
+                        while (time.time() - start_time < self.timeout) and self.is_active and not self.start_id:
+                            command = self.listen_command()
+                            coincidencia = re.match(rooms, command)
+                    
+                            if coincidencia:
+                                accion = coincidencia.group(1).strip()  # Todo antes del lugar
+                                lugar = coincidencia.group(2)           # El lugar
+                            else:
+                                accion = command
+                                lugar = None 
+                                
+                            if "sígueme" in accion or "ven" in accion or "conmigo" in accion:
                                 self.log_and_speak("Te sigo.")
                                 self.command_pub.publish(FOLLOW_ST)
-
-                            elif "quédate aquí" or "quieto" or "para" in accion:
+                                command = ""
+                                accion = ""
+                                break
+                            elif "quédate aquí" in accion or "quieto" in accion or "para" in accion:
                                 self.log_and_speak("Me quedo quieto.")             
                                 self.command_pub.publish(STOP_FOLLOW_CMD)
-
+                                command = ""
+                                accion = ""
+                                break
                             elif lugar != None and not "patrulla" in accion:
                                 self.log_and_speak("Me dirijo a " + lugar)
                                 self.command_pub.publish(MOVE_ST + ":" + lugar)
-
+                                command = ""
+                                accion = ""
+                                break
                             elif lugar != None and "patrulla" in accion:
                                 self.log_and_speak("Patrullando " + lugar)
                                 self.command_pub.publish(PATROL_ST + ":" + lugar)
-
+                                command = ""
+                                accion = ""
+                                break
                             elif "patrulla" in accion or ("patrulla" in accion and "zona" in accion):
                                 self.log_and_speak("Patrullando la ruta")
                                 self.command_pub.publish(PATROL_ST + ":" + "route")
-                                
-                            elif "vuelve a la estación" or "descansa" in accion:
+                                command = ""
+                                accion = ""
+                                break
+                            elif "vuelve a la estación" in accion or "descansa" in accion:
                                 self.log_and_speak("Me dirijo a la estación de carga.")
                                 self.command_pub.publish(MOVE_ST + ":" + "estacion")
-
+                                command = ""
+                                accion = ""
+                                break
                             elif "no mires" in accion or ("apaga" in accion and "camara" in accion):
                                 self.log_and_speak("De acuerdo, no miro.")
                                 self.command_pub.publish(STOP_DETECTION_CMD)
-
+                                command = ""
+                                accion = ""
+                                break
                             elif "mírame" in accion or ("enciende" in accion and "camara" in accion):
                                 self.log_and_speak("De acuerdo, enciendo camara.")
                                 self.command_pub.publish(START_DETECTION_CMD)
-
+                                command = ""
+                                accion = ""
+                                break
                             elif "no" in accion and ("oigas" in accion or "escuches" in accion):
                                 self.log_and_speak("De acuerdo, no te oigo.")
+                                command = ""
+                                accion = ""
                                 self.is_active = False
                                 break
-
                             elif "adiós" in accion:
                                 self.log_and_speak("Adiós")
                                 self.command_pub.publish(SHUTDOWN_ST)
                                 rospy.signal_shutdown("Apagando")
-                                break
-
+                                break        
+                        
+                        if self.start_id == True:
+                            self.id_person()
+                            
                         if self.is_active == False:
                             break
 

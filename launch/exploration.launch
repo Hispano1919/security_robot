@@ -1,0 +1,22 @@
+<launch>
+
+    <!-- SLAM -->
+    <arg name="3d_sensor"  value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/> 
+    
+    <include file="$(find turtlebot_navigation)/launch/includes/gmapping/$(arg 3d_sensor)_gmapping.launch.xml">
+    </include>
+
+    <!-- Move base -->
+    <include file="$(find security_robot)/launch/includes/move_base.launch.xml">
+        <arg name="base_frame_id" value="base_footprint"/>
+    </include>
+
+
+    <!-- Explore -->
+    <node pkg="explore_lite" type="explore" respawn="true" name="explore" output="screen">
+        <rosparam file="$(find security_robot)/config/exploration.yaml" command="load" />
+    </node>
+    
+    <!-- RViz -->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find tutorial_pkg)/rviz/explore.rviz"/>
+</launch>

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 """ ******************************************************************************************************
     Definicion de macros y variables globales
 """
@@ -23,6 +24,7 @@ RESET_DIST_CMD = "reset_dist"
 
 START_DETECTION_CMD = "start_detection"
 STOP_DETECTION_CMD = "stop_detection"
+STOP_QRFINDER_NODE = "stop_qrfinder_node"
 
 START_FOLLOW_CMD = "start_follow_person"
 STOP_FOLLOW_CMD = "stop_follow_person"
@@ -44,6 +46,7 @@ IDENTIFY_CMD = "identify_command"
 # ESTADOS
 IDLE_ST = "idle_state"
 FOLLOW_ST = "follow_state"
+IDENTIFY_ST = "identify_state"
 MOVE_ST = "move_state"
 HANDLE_ST = "handle_state"
 SHUTDOWN_ST = "shutdown_state"
@@ -67,7 +70,7 @@ ANGULAR_GAIN = 0.001  # Ganancia para el control de la velocidad angular
 MAX_VSPEED = 0.5
 MAX_WSPEED = 0.5
 
-states = [IDLE_ST, FOLLOW_ST, MOVE_ST, SHUTDOWN_ST, PATROL_ST, QRFINDER_ST]
+states = [IDLE_ST, FOLLOW_ST, MOVE_ST, SHUTDOWN_ST, PATROL_ST, QRFINDER_ST, IDENTIFY_ST]
 rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion)\b$"
 
 # Definir los waypoints a los que el robot debe moverse
@@ -78,3 +81,33 @@ def_waypoints = [
     ['salon', (-3.6, 0.7), (0.0, 0.0, 0, 1.0)],
     ['cocina', (0.0, 1.6), (0.0, 0.0, 0, 1.0)],
 ]
+
+""" ******************************************************************************************************
+    Funcion para actualizar la variable global MAP_NAME
+"""
+def update_map_name(map_name):
+    global MAP_NAME  # Declarar MAP_NAME como global
+    MAP_NAME = map_name
+    print(f"MAP_NAME updated to: {MAP_NAME}")
+    
+""" ******************************************************************************************************
+    Funcion principal
+"""
+def main():
+    # Procesar los argumentos de línea de comandos
+    parser = argparse.ArgumentParser(description="Script for robot control")
+    parser.add_argument("--map_name", type=str, help="Specify the map name")
+    args = parser.parse_args()
+
+    # Actualizar MAP_NAME si se proporciona un argumento
+    if args.map_name:
+        update_map_name(args.map_name)
+    else:
+        print("No map name provided, using default value.")
+
+    # Simulación de la lógica principal del script
+    print("Running the robot control script...")
+    print(f"Using MAP_NAME: {MAP_NAME}")
+
+if __name__ == "__main__":
+    main()

@@ -17,7 +17,7 @@ import termios
 import subprocess
 import datetime
 
-from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST
+from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, QRFINDER_ST, IDENTIFY_ST
 from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD, STOP_MOVE_CMD
 
 BANNER = """
@@ -83,20 +83,27 @@ class CommandInterface:
             lugar = coincidencia.group(2)          # El lugar
         else:
             lugar = None
-
+            accion = command
+            
         if "sigue" in command or "sigueme" in command:
             self.console.print(":robot: ➡ :runner: [bold green]Siguiéndote...[/bold green]")
             self.cmd_pub.publish(FOLLOW_ST)
+        elif ("busca" in command or "identifica" in command) and ("persona" in command or "personas" in command):
+            self.console.print(":robot: ➡ :mag: [bold green]Buscando personas para identificar...[/bold green]")
+            self.cmd_pub.publish(IDENTIFY_ST)
+        elif "busca" in command and ("qr" in command or "qrs" in command):
+            self.console.print(":robot: ➡ :mag_right: [bold green]Buscando QRs...[/bold green]")
+            self.cmd_pub.publish(QRFINDER_ST)
         elif "quieto" in command or "quedate" in command:
             self.console.print(":robot: ➡ :stop_sign: [bold yellow]Me quedo quieto.[/bold yellow]")
             self.cmd_pub.publish(STOP_MOVE_CMD)
         elif ("deja" in command and "seguirme" in command) or ("no" in command and "me sigas" in command):
             self.console.print(":robot: ➡ :stop_sign: [bold yellow]No te sigo.[/bold yellow]")
             self.cmd_pub.publish(STOP_FOLLOW_CMD)
-        elif lugar and "muevete" in command or "ve" in command:
+        elif lugar and "muevete" in accion or "ve" in accion:
             self.console.print(f":robot: ➡ :house: [bold blue]Yendo a {lugar}...[/bold blue]")
             self.cmd_pub.publish(MOVE_ST + ':' + lugar)
-        elif lugar and "patrulla" in command or "busca" in command:
+        elif lugar and "patrulla" in accion or "busca" in accion:
             self.console.print(f":robot: ➡ :shield: [bold blue]Patrullando {lugar}...[/bold blue]")
             self.cmd_pub.publish(PATROL_ST + ':' + lugar)
         elif "patrulla" in command:
@@ -126,6 +133,8 @@ class CommandInterface:
         elif "adios" in command or "apagar" in command:
             self.cmd_pub.publish(SHUTDOWN_ST)
             self.running = False
+            self.stop()
+            
         elif "ayuda" in command:
             self.console.print(
                 Panel(

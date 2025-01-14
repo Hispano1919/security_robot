@@ -5,11 +5,11 @@ import rospy
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist, Point
 from std_msgs.msg import String
+import argparse
 
 from APP_config import TOPIC_COMMAND, TOPIC_LOGS, TOPIC_VEL, TOPIC_PERSONPOSE, MOVE_CLOSER_CMD, MOVE_AWAY_CMD, RESET_DIST_CMD, IDENTIFY_CMD 
 from APP_config import START_DETECTION_CMD, STOP_DETECTION_CMD, START_FOLLOW_CMD, STOP_FOLLOW_CMD, NODE_SUCCEED, NODE_FAILURE, STOP_FOLLOW_NODE
 from APP_config import MAX_VSPEED, MAX_WSPEED, ANGULAR_GAIN, LINEAR_GAIN, TARGET_DISTANCE, DISTANCE_ERROR, CENTER_TOLERANCE_X
-
 
 class FollowPersonNode():
     def __init__(self):
@@ -34,6 +34,12 @@ class FollowPersonNode():
         self.last_twist.linear.x = 0
         self.person_pose = False
         
+        parser = argparse.ArgumentParser(description="Script for robot control")
+        parser.add_argument("--identify", type=str, help="Specify the map name")
+        args = parser.parse_args()
+
+        self.id_flag = args.identify
+        print(self.id_flag)
         self.execute()
         
     def execute(self):
@@ -58,14 +64,14 @@ class FollowPersonNode():
         self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
         # Suscriptor al tópico /person_pose
         self.cmd = None
-        self.subPerson = rospy.Subscriber(TOPIC_PERSONPOSE, Point, self.person_pose_callback)
+        self.person_sub = rospy.Subscriber(TOPIC_PERSONPOSE, Point, self.person_pose_callback)
         self.cmd_vision_pub.publish(START_DETECTION_CMD)
         self.log_pub.publish("[INFO] FOLLOW NODE: Node started")
             
 
     def stop(self):
         self.log_pub.publish("[INFO] FOLLOW NODE: Node stopped")
-        self.subPerson.unregister()
+        self.person_sub.unregister()
         self.cmd_sub.unregister()
 
         self.dynamicDist = 0
@@ -94,7 +100,7 @@ class FollowPersonNode():
     def person_pose_callback(self, msg):
         """Callback para recibir la posición del pixel desde /person_pose."""
         if self.cmd == STOP_FOLLOW_CMD:
-            self.subPerson.unregister()  
+            self.person_sub.unregister()  
         
         self.person_pose = True
         error_x = msg.x
@@ -138,7 +144,8 @@ class FollowPersonNode():
 
                 if(abs(distance_error) < DISTANCE_ERROR):
                     twist.linear.x = 0
-                    self.cmd_pub.publish(IDENTIFY_CMD)
+                    if(self.id_flag == "true"):
+                        self.cmd_pub.publish(IDENTIFY_CMD)
 
                 if twist.linear.x  > MAX_VSPEED:
                     twist.linear.x  = MAX_VSPEED
@@ -156,6 +163,7 @@ class FollowPersonNode():
 
 def main():
     rospy.init_node('FollowPersonNode')
+    # Procesar los argumentos de línea de comandos
     
     followNode = FollowPersonNode()
 

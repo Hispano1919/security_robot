@@ -7,6 +7,8 @@ import yaml
 import os
 import csv
 
+from APP_config import MAP_NAME
+
 def process_map(input_map_path, output_colored_map_path, yaml_path="mapa_aula.yaml"):
     """
     Procesa un mapa de entrada, genera una imagen con cada región de un color distinto,

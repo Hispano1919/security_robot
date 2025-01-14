@@ -26,6 +26,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, String
 from geometry_msgs.msg import Twist, Point
 
+
 import actionlib
 import re
 
@@ -34,8 +35,8 @@ import re
 #  rostopic pub /robot_cmd std_msgs/String "start_detection"
 
 from APP_config import TOPIC_LOGS, TOPIC_COMMAND
-from APP_config import IDLE_ST, HANDLE_ST, FOLLOW_ST, MOVE_ST, PATROL_ST, QRFINDER_ST, SHUTDOWN_ST
-from APP_config import STOP_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, STOP_FOLLOW_CMD, STOP_FOLLOW_NODE, STOP_MOVE_NODE
+from APP_config import IDLE_ST, HANDLE_ST, FOLLOW_ST, MOVE_ST, PATROL_ST, QRFINDER_ST, SHUTDOWN_ST, IDENTIFY_ST 
+from APP_config import STOP_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, STOP_FOLLOW_CMD, STOP_FOLLOW_NODE, STOP_MOVE_NODE, STOP_QRFINDER_NODE
 from APP_config import MAP_NAME, rooms, states 
 
 actual_state = IDLE_ST
@@ -63,13 +64,13 @@ class MoveState(State):
         rate = rospy.Rate(0.1)
         
         print(userdata.input_data)
-        if userdata.input_data in rooms:
+        if userdata.input_data in rooms and actual_state == MOVE_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
             self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
         elif userdata.input_data in rooms and actual_state == PATROL_ST:
-            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
+            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_patrol_area.py'])
         elif userdata.input_data == "route" and actual_state == PATROL_ST: 
-            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
+            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_patrol_route.py'])
             
         while not rospy.is_shutdown():
             rate.sleep()
@@ -78,14 +79,10 @@ class MoveState(State):
                 if self.cmd == STOP_MOVE_NODE:
                     break
                 elif self.cmd in self.states:
+                    userdata.output_data = self.cmd  
                     self.cmd_pub.publish(STOP_MOVE_CMD)    
                 
         self.log_pub.publish("[INFO] MOVE STATE: Stopped state")
-
-        userdata.output_data = None
-
-        if self.cmd in self.states:
-            userdata.output_data = self.cmd              
 
         self.log_pub.publish(f"[EVENT]: MOVE STATE -> IDLE STATE")
         return HANDLE_ST
@@ -120,7 +117,7 @@ class FollowPersonState(State):
         self.follow_person_process = None
 
     def execute(self, userdata):
-        
+        global actual_state
         self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
         #self.timer = rospy.Timer(rospy.Duration(5), self.publish_message)
         
@@ -129,8 +126,12 @@ class FollowPersonState(State):
         self.log_pub.publish("[INFO] FOLLOW STATE: Started state")
         rate = rospy.Rate(0.1)
 
-        self.start_node()
-        
+        print(actual_state)
+        if actual_state == FOLLOW_ST:
+            self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py', '--identify', "false"])
+        elif actual_state == IDENTIFY_ST:
+            self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py', '--identify', "true"])
+
         while not rospy.is_shutdown() and self.followPerson:
             rate.sleep()
 
@@ -138,30 +139,14 @@ class FollowPersonState(State):
                 if self.cmd == STOP_FOLLOW_NODE:
                     break
                 elif self.cmd in self.states:
+                    userdata.output_data = self.cmd  
                     self.cmd_pub.publish(STOP_FOLLOW_CMD)
                     break
                 
-        self.log_pub.publish("[INFO] FOLLOW STATE: Stopped state")
-        self.followPerson = False
-        userdata.output_data = None
-
-        if self.cmd in self.states:
-            userdata.output_data = self.cmd              
-        
+        self.log_pub.publish("[INFO] FOLLOW STATE: Stopped state")     
         self.log_pub.publish(f"[EVENT]: FOLLOW STATE -> IDLE STATE")
-        return HANDLE_ST           
-
-    def start_node(self):
-        self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py'])
-        # Esperar hasta que el proceso esté completamente iniciado
         
-    def stop_node(self):
-        if self.follow_person_process:
-            # Envía la señal SIGINT para detener el nodo de forma segura
-            self.follow_person_process.send_signal(signal.SIGINT)
-            self.follow_person_process.wait()
-            print("Nodo FollowPerson detenido.")
-            self.follow_person_process = None
+        return HANDLE_ST           
             
     def publish_message(self, event):
         # Publish the message
@@ -181,7 +166,7 @@ class QRFinderState(State):
         # Publicador para el tópico de velocidad
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10)
-        
+        self.qrmove_node_process = None
         self.log_msg = "[INFO] QR FINDER STATE: Waiting..."
         # VARIABLES
         self.cmd = None
@@ -196,27 +181,24 @@ class QRFinderState(State):
         self.log_pub.publish("[INFO] QR FINDER STATE: Started state")
         rate = rospy.Rate(0.1)
 
-        qrFinderNode = QRFinderNode()
-        qrFinderNode.start(MAP_NAME)
+        self.qrmove_node_process = subprocess.Popen(['rosrun', 'security_robot', 'RV_QR_finder.py'])
 
         while not rospy.is_shutdown():
             rate.sleep()
-
-            if self.cmd == STOP_MOVE_CMD or self.cmd in self.states or MOVE_ST in self.cmd:
-                self.log_pub.publish("[INFO] QR FINDER STATE: Stopped state")
-
-                userdata.output_data = None
-
-                if self.cmd in self.states:
-                    userdata.output_data = self.cmd              
-                
-                qrFinderNode.stop()
-                
-                self.log_pub.publish(f"[EVENT]: QR FINDER STATE -> IDLE STATE")
-                self.timer.shutdown()
-                break
             
+            if self.cmd is not None:
+                if self.cmd == STOP_QRFINDER_NODE:
+                    break
+                elif self.cmd in self.states:
+                    userdata.output_data = self.cmd  
+                    self.cmd_pub.publish(STOP_MOVE_CMD)
+                    break
+                
+        self.log_pub.publish("[INFO] QR FINDER STATE: Stopped state")
+        self.log_pub.publish(f"[EVENT]: QR FINDER STATE -> IDLE STATE")
+        self.timer.shutdown() 
         return HANDLE_ST
+    
     def publish_message(self, event):
         # Publish the message
         self.log_pub.publish(self.log_msg)
@@ -261,7 +243,9 @@ class IdleWait(State):
             userdata.output_data = self.arg
             self.log_pub.publish(f"[EVENT]: IDLE STATE -> {self.cmd}")
             self.timer.shutdown()
+
             cmd = self.cmd
+            actual_state = cmd
             self.cmd = None   
             return cmd
 
@@ -282,7 +266,6 @@ class IdleWait(State):
         if cmd in states:
             self.idleWait = False
             self.cmd = cmd
-            actual_state = cmd
 
 """ ******************************************************************************************************
    Funcion para parar todos los nodos
@@ -353,17 +336,22 @@ def kill_run_launch():
         print("No se encontró ningún proceso relacionado con run.launch.")
     except Exception as e:
         print(f"Error al intentar matar el proceso: {e}")
-
+        
+        
 """ ******************************************************************************************************
    Funcion principal
 """
 def main():
     rospy.init_node("main")
+        
     log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
     # Crea una maquina de estados mediante SMACH
     sm = StateMachine(outcomes=['end'])
     
     log_pub.publish("[EVENT]: STARTING APP")
+    log_pub.publish(f"[EVENT]: USING MAP NAME {MAP_NAME}")
+    print(f"[EVENT]: USING MAP NAME {MAP_NAME}")
+    
     sm.userdata.data = None
 
     with sm:
@@ -373,6 +361,7 @@ def main():
             transitions={
                 IDLE_ST:'IdleWait',
                 FOLLOW_ST:'FollowPerson',
+                IDENTIFY_ST:'FollowPerson',
                 MOVE_ST:'MoveState',
                 PATROL_ST:'MoveState',
                 QRFINDER_ST:'QRFinder',
