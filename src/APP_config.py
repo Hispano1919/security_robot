@@ -5,6 +5,7 @@ import argparse
 """ ******************************************************************************************************
     Definicion de macros y variables globales
 """
+PACK_NAME = "security_robot"
 TOPIC_VEL = "/cmd_vel_mux/input/navi"
 TOPIC_SCAN = '/scan'
 TOPIC_AMCLPOS = '/amcl_pose'
@@ -56,8 +57,8 @@ QRFINDER_ST = "qrfinder_state"
 
 
 # PATH
-WAYPOINT_PATH = "/home/asahel/ROS_WS/src/security_robot/output_files/default.qrlogs"
-MAP_NAME = "casa3"
+WAYPOINT_PATH = "/home/asahel/ROS_WS/src/security_robot/output_files/default.qrlog"
+MAP_NAME = "mapa_aula"
 
 
 

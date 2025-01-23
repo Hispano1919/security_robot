@@ -15,7 +15,7 @@ import re
 import argparse
 
 from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, MAP_NAME, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, STOP_MOVE_NODE
+from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, STOP_MOVE_NODE, PACK_NAME
 
 class QRMoveNode():
     def __init__(self):
@@ -69,7 +69,7 @@ class QRMoveNode():
         self.log_pub.publish("[INFO] QRMOVE NODE: Started QR Waypoint node")
         
         rospack = rospkg.RosPack()
-        package_path = rospack.get_path('security_robot')
+        package_path = rospack.get_path(PACK_NAME)
         qrfolder_path = package_path + "/output_files"
         self.log_file_path = qrfolder_path + "/" + MAP_NAME + ".qrlog"
         self.update_waypoints_from_file(self.log_file_path, def_waypoints)

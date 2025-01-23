@@ -21,7 +21,7 @@ import rospkg
 
 
 from APP_config import TOPIC_VEL, TOPIC_RGBCAM, TOPIC_LOGS, TOPIC_PRIMG, TOPIC_COMMAND, TOPIC_AMCLPOS
-from APP_config import STOP_MOVE_CMD, WAYPOINT_PATH, NODE_SUCCEED, NODE_FAILURE, MAP_NAME, STOP_QRFINDER_NODE
+from APP_config import STOP_MOVE_CMD, WAYPOINT_PATH, NODE_SUCCEED, NODE_FAILURE, MAP_NAME, STOP_QRFINDER_NODE, PACK_NAME
 
 class QRFinderNode():
     def __init__(self):
@@ -72,7 +72,7 @@ class QRFinderNode():
         #self.log_pub.publish("[INFO] QR FINDER NODE: Started node")
         
         rospack = rospkg.RosPack()
-        package_path = rospack.get_path('security_robot')
+        package_path = rospack.get_path(PACK_NAME)
         folder_path = package_path + "/nav_maps"
         yaml_file = MAP_NAME + ".yaml"
         

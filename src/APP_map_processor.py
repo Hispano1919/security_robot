@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import cv2
 import numpy as np
 import yaml
@@ -46,12 +43,14 @@ def process_map(input_map_path, output_colored_map_path, yaml_path="mapa_aula.ya
 
     # Calcular los centroides de cada región conectada y pintar la región
     centroids = []
+    region_colors = []  # Almacenar los colores asignados a las regiones
     for label in range(1, num_labels):  # Ignorar el fondo (label 0)
         # Crear una máscara para la región actual
         region_mask = (labels == label).astype(np.uint8)
 
         # Asignar un color aleatorio para cada región
         color = np.random.randint(0, 255, size=3).tolist()  # Genera un color aleatorio
+        region_colors.append(color)  # Guardar el color de la región
 
         # Pintar la región con el color correspondiente
         colored_image[region_mask == 1] = color
@@ -94,26 +93,18 @@ def process_map(input_map_path, output_colored_map_path, yaml_path="mapa_aula.ya
     cv2.imwrite(output_colored_map_path, final_image)
     print(f"Imagen coloreada con centroides, origen y bordes guardada en {output_colored_map_path}")
     
-    return labels, num_labels, centroids
+    return labels, num_labels, centroids, region_colors
 
-def save_centroids_to_csv(centroids, output_csv_path):
+def save_centroids_and_colors_to_csv(centroids, colors, pgm_paths, output_csv_path):
     """
-    Guarda los centroides en un archivo CSV.
+    Guarda los centroides, colores y rutas de los archivos .pgm en un archivo CSV.
     """
     with open(output_csv_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['X (m)', 'Y (m)'])  # Cabecera
-        for centroid in centroids:
-            writer.writerow(centroid)
-    print(f"Centroides guardados en {output_csv_path}")
-
-def traverse_centroids(centroids):
-    """
-    Realiza un recorrido por los centroides.
-    """
-    print("Recorrido por los centroides (en metros):")
-    for idx, centroid in enumerate(centroids):
-        print(f"Paso {idx + 1}: {centroid}")
+        writer.writerow(['X (m)', 'Y (m)', 'Color (R,G,B)', 'Ruta .pgm'])  # Cabecera
+        for centroid, color, pgm_path in zip(centroids, colors, pgm_paths):
+            writer.writerow([centroid[0], centroid[1], color, pgm_path])
+    print(f"Centroides, colores y rutas a archivos .pgm guardados en {output_csv_path}")
 
 def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir, dilation_kernel_size=(5, 5)):
     """
@@ -129,6 +120,7 @@ def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir
     os.makedirs(output_dir, exist_ok=True)
 
     kernel = np.ones(dilation_kernel_size, np.uint8)
+    pgm_paths = []  # Lista para almacenar las rutas a los archivos generados
 
     for label in range(1, num_labels):  # Ignorar el fondo (label 0)
         # Crear una máscara binaria para el área seleccionada
@@ -142,30 +134,24 @@ def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir
 
         # Guardar el mapa modificado
         output_path = f"{output_dir}/restricted_area_{label}.pgm"
+        pgm_paths.append(output_path)  # Agregar la ruta al archivo generado
         cv2.imwrite(output_path, restricted_map)
         print(f"Mapa con área {label} restringida y dilatada guardado en {output_path}")
 
+    return pgm_paths
+
 # Rutas de los mapas
-input_map = "../nav_maps/casa_grande.pgm"  # Cambia esta ruta por tu mapa original
-output_colored_map = "../output_files/mapa_areas.png"  # Ruta para guardar la imagen coloreada
-yaml_path = "../nav_maps/casa_grande.yaml"  # Ruta del archivo .yaml
-output_csv_path = "../output_files/centroides.csv"  # Ruta para guardar el CSV de centroides
+input_map = "../nav_maps/" + MAP_NAME + ".pgm"  # Cambia esta ruta por tu mapa original
+output_colored_map = "../output_files/" + MAP_NAME + ".png"  # Ruta para guardar la imagen coloreada
+yaml_path = "../nav_maps/" + MAP_NAME + ".yaml"   # Ruta del archivo .yaml
+output_colored_csv_path = "../output_files/" + MAP_NAME + ".csv"   # Ruta para guardar el CSV de centroides, colores y rutas .pgm
 output_dir = "../output_files/restricted_maps"  # Directorio donde guardar los mapas restringidos
 
 # Procesar el mapa para etiquetar áreas
-labels, num_labels, centroids = process_map(input_map, output_colored_map, yaml_path=yaml_path)
+labels, num_labels, centroids, region_colors = process_map(input_map, output_colored_map, yaml_path=yaml_path)
 
-# Guardar los centroides en un archivo CSV
-save_centroids_to_csv(centroids, output_csv_path)
+# Generar mapas con restricciones para cada área, aplicando dilatación, y obtener las rutas
+pgm_paths = save_restricted_area_overlays(input_map, labels, num_labels, output_dir, dilation_kernel_size=(5, 5))
 
-# Realizar un recorrido por los centroides
-traverse_centroids(centroids)
-
-# Generar mapas con restricciones para cada área, aplicando dilatación
-save_restricted_area_overlays(input_map, labels, num_labels, output_dir, dilation_kernel_size=(5, 5))
-
-# Mostrar los centroides calculados
-print("Centroides de las regiones conectadas (en metros):")
-for centroid in centroids:
-    print(centroid)
-
+# Guardar los centroides, colores y rutas de archivos en un archivo CSV
+save_centroids_and_colors_to_csv(centroids, region_colors, pgm_paths, output_colored_csv_path)

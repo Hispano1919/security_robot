@@ -37,7 +37,7 @@ import re
 from APP_config import TOPIC_LOGS, TOPIC_COMMAND
 from APP_config import IDLE_ST, HANDLE_ST, FOLLOW_ST, MOVE_ST, PATROL_ST, QRFINDER_ST, SHUTDOWN_ST, IDENTIFY_ST 
 from APP_config import STOP_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, STOP_FOLLOW_CMD, STOP_FOLLOW_NODE, STOP_MOVE_NODE, STOP_QRFINDER_NODE
-from APP_config import MAP_NAME, rooms, states 
+from APP_config import MAP_NAME, PACK_NAME, rooms, states 
 
 actual_state = IDLE_ST
 """ ******************************************************************************************************
@@ -66,11 +66,11 @@ class MoveState(State):
         print(userdata.input_data)
         if userdata.input_data in rooms and actual_state == MOVE_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
-            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
         elif userdata.input_data in rooms and actual_state == PATROL_ST:
-            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_patrol_area.py'])
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_area.py'])
         elif userdata.input_data == "route" and actual_state == PATROL_ST: 
-            self.move_node_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_patrol_route.py'])
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_route.py'])
             
         while not rospy.is_shutdown():
             rate.sleep()
@@ -128,9 +128,9 @@ class FollowPersonState(State):
 
         print(actual_state)
         if actual_state == FOLLOW_ST:
-            self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py', '--identify', "false"])
+            self.follow_person_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_follow_person.py', '--identify', "false"])
         elif actual_state == IDENTIFY_ST:
-            self.follow_person_process = subprocess.Popen(['rosrun', 'security_robot', 'MR_follow_person.py', '--identify', "true"])
+            self.follow_person_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_follow_person.py', '--identify', "true"])
 
         while not rospy.is_shutdown() and self.followPerson:
             rate.sleep()
@@ -181,7 +181,7 @@ class QRFinderState(State):
         self.log_pub.publish("[INFO] QR FINDER STATE: Started state")
         rate = rospy.Rate(0.1)
 
-        self.qrmove_node_process = subprocess.Popen(['rosrun', 'security_robot', 'RV_QR_finder.py'])
+        self.qrmove_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'RV_QR_finder.py'])
 
         while not rospy.is_shutdown():
             rate.sleep()

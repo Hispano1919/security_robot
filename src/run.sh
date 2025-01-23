@@ -5,6 +5,13 @@ MODE="light"
 MOVEPERSON="false"
 RVIZ="false"
 WORLD_NAME="casa3"
+SIMULATION="true"
+
+
+# Fuente de ROS (ajustar según tu configuración)
+source /opt/ros/noetic/setup.bash
+source ~/catkin_ws/devel/setup.bash
+source ~/ROS_WS/devel/setup.bash
 
 show_help() {
   echo "Invalid argument: $1"
@@ -23,6 +30,9 @@ show_help() {
 # Procesar los argumentos
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    -s)
+      SIMULATION="false"
+      ;;
     -w)
       WORLD_NAME="$2"
       shift 2
@@ -50,34 +60,30 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-# Fuente de ROS (ajustar según tu configuración)
-source /opt/ros/noetic/setup.bash
-source ~/catkin_ws/devel/setup.bash
-source ~/ROS_WS/devel/setup.bash
-
-echo "Launching World..."
-gnome-terminal --title="WORLD" -- bash -c "roslaunch security_robot world.launch world_name:=$WORLD_NAME" &
-WORLD_PID=$!  # Guardar el PID del terminal
-
-# Añadir un retardo para permitir que el mundo se cargue
-echo "Waiting for World to load..."
-sleep 10
-
-# Lanzar navegación solo si no está en modo "explore"
-if [ "$MODE" != "explore" ]; then
-  echo "Launching Navigation..."
-  if [ "$RVIZ" == "true" ]; then
-    gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch world_name:=$WORLD_NAME rviz:=true" &
+if [ "$SIMULATION" == "true" ]; then
+  echo "Launching World..."
+  gnome-terminal --title="WORLD" -- bash -c "roslaunch security_robot world.launch world_name:=$WORLD_NAME" &
+  WORLD_PID=$!  # Guardar el PID del terminal
+  # Añadir un retardo para permitir que el mundo se cargue
+  echo "Waiting for World to load..."
+  sleep 10
+  # Lanzar navegación solo si no está en modo "explore"
+  if [ "$MODE" != "explore" ]; then
+    echo "Launching Navigation..."
+    if [ "$RVIZ" == "true" ]; then
+      gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch world_name:=$WORLD_NAME rviz:=true" &
+    else
+      gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch world_name:=$WORLD_NAME" &
+    fi
+    sleep 5
   else
-    gnome-terminal --title="NAV" -- bash -c "roslaunch security_robot navigation.launch world_name:=$WORLD_NAME" &
+    echo "Skipping Navigation launch for explore mode."
   fi
-  sleep 5
-else
-  echo "Skipping Navigation launch for explore mode."
 fi
 
+
 echo "Updating MAP_NAME using APP_main.py..."
-python3 ./src/APP_config.py --map_name "$WORLD_NAME"
+python3 APP_config.py --map_name "$WORLD_NAME"
 
 # Seleccionar el archivo .launch según el argumento
 case "$MODE" in

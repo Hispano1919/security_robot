@@ -16,7 +16,7 @@ import random
 import rospkg
 
 from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE
+from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME
 
 
 class PatrolAreaNode():
@@ -35,7 +35,7 @@ class PatrolAreaNode():
         rospy.spin()
         
         rospack = rospkg.RosPack()
-        package_path = rospack.get_path('security_robot')
+        package_path = rospack.get_path(PACK_NAME)
         folder_path = self.package_path + "/nav_maps"
         yaml_file = folder_path + "/" + map_name + ".yaml"
         area_file = folder_path + "/" + area_name + ".yaml"

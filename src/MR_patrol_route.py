@@ -16,7 +16,7 @@ import rospkg
 import csv
 
 from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE
+from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME
 
 class PatrolRouteNode():
     def __init__(self):
@@ -34,7 +34,7 @@ class PatrolRouteNode():
         rospy.spin()
         
         rospack = rospkg.RosPack()
-        package_path = rospack.get_path('security_robot')
+        package_path = rospack.get_path(PACK_NAME)
         folder_path = package_path + "/output_files"
         csv_file = folder_path + "/" + map_name + ".csv"
         
