@@ -21,6 +21,7 @@ show_help() {
   echo "  light - Launches navigation, follow, voice control and GUI"
   echo "  minimal - Launches navigation, follow and console"
   echo "  explore - Launches exploration "
+  echo "  segmentation - Launches map segmentation "
   echo "Flags:"
   echo "  move_person - Launches move_person node"
   echo "  rviz - Launches RVIZ with navigation"
@@ -32,6 +33,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -s)
       SIMULATION="false"
+      shift
       ;;
     -w)
       WORLD_NAME="$2"
@@ -41,24 +43,33 @@ while [[ $# -gt 0 ]]; do
       WORLD_NAME="$2"
       shift 2
       ;;
-    heavy|light|minimal|explore)
+    heavy|light|minimal|explore|segmentation)
       MODE="$1"
+      shift
       ;;
     move_person)
       MOVEPERSON="true"
+      shift
       ;;
     rviz)
       RVIZ="true"
+      shift
       ;;
     help)
       show_help
+      shift
       ;;
     *)
       show_help "$1"
+      shift
       ;;
   esac
-  shift
 done
+
+if [ "$MODE" == "segmentation"]; then
+  SIMULATION="false"
+  echo "Skipping world and navigation launch for map segmentation"
+fi
 
 if [ "$SIMULATION" == "true" ]; then
   echo "Launching World..."
@@ -83,8 +94,9 @@ fi
 
 
 echo "Updating MAP_NAME using APP_main.py..."
-python3 APP_config.py --map_name "$WORLD_NAME"
+python3 APP_map_name_updater.py APP_config.py "$WORLD_NAME"
 
+sleep 1
 # Seleccionar el archivo .launch según el argumento
 case "$MODE" in
   heavy)
@@ -102,6 +114,10 @@ case "$MODE" in
   explore)
     echo "Launching exploration pipeline"
     gnome-terminal --title="EXPLORATION" -- bash -c "roslaunch security_robot exploration.launch" &
+    ;;
+  segmentation)
+    echo "Launching map segmentation pipeline"
+    gnome-terminal --title="MAP_SEGMENTATION" -- bash -c "rosrun security_robot APP_map_processor.py" &
     ;;
 esac
 sleep 1

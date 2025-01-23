@@ -16,38 +16,45 @@ import rospkg
 import csv
 
 from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME
+from APP_config import STOP_MOVE_CMD, STOP_MOVE_NODE, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME, MAP_NAME
 
 class PatrolRouteNode():
     def __init__(self):
-        self.active = False
+        self.is_active = True
         self.clientAvailable = True
+        self.stop_node = False
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.cmd = None
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10) 
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10) 
         self.place = None
-        self.log_msg = "[INFO] MOVE STATE: Waiting..."
         
-    def start(self, map_name):
-        rospy.init_node('Patrol_Route_Node')
-        rospy.spin()
+        self.start()
+        
+    def start(self):
         
         rospack = rospkg.RosPack()
         package_path = rospack.get_path(PACK_NAME)
         folder_path = package_path + "/output_files"
-        csv_file = folder_path + "/" + map_name + ".csv"
+        csv_file = folder_path + "/" + MAP_NAME + ".csv"
         
         self.execute(csv_file)
         
     def stop(self):
-        rospy.signal_shutdown("Stopping Patrol Area Node")
+        if self.client.get_state() == actionlib.GoalStatus.PENDING or self.client.get_state() == actionlib.GoalStatus.ACTIVE:
+            self.set_current_position_as_goal()
+            while not self.goal_cancel:
+                rospy.sleep(0.1)
+                
+        self.log_pub.publish("[INFO] PATROL NODE: Stopped patrol route node")
+        self.cmd_sub.unregister()  
+        self.is_active = False
         
     def cmd_callback(self, msg):
             
         if msg.data == STOP_MOVE_CMD:
-            self.active = False
-            self.set_current_position_as_goal()
+            self.is_active = False
+            self.stop()
             
     def execute(self, csv_path):
         # Leer los centroides desde el archivo CSV
@@ -56,27 +63,29 @@ class PatrolRouteNode():
         # Mover el robot a cada uno de los centroides
         self.mover_a_centroides(centroides)
     
-    def mover_a_goal(self, x, y):
-        """Enviar un goal al robot para moverse a una ubicación específica."""
-        # Crear un cliente de acción para el servidor 'move_base'
-        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        client.wait_for_server()
+        self.stop()
+        self.stop_node = True
+        
+    def mover_a_goal(self, x,y):            
+        # Si el cliente move_base esta activo
+        if self.clientAvailable:
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = "map"
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = x
+            goal.target_pose.pose.position.y = y
+            goal.target_pose.pose.orientation.w = 1.0  # Orientación neutra (sin rotación)
 
-        # Crear un objetivo (goal) para el robot
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "map"
-        goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.pose.position.x = x
-        goal.target_pose.pose.position.y = y
-        goal.target_pose.pose.orientation.w = 1.0  # Orientación neutra (sin rotación)
-
-        # Enviar el goal al servidor 'move_base'
-        client.send_goal(goal)
-        client.wait_for_result()
-
-        # Retornar el resultado del movimiento
-        return client.get_result()
-
+            self.client.send_goal(goal)
+            self.client.wait_for_result()
+        
+            if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
+                return 'succeeded'
+            else:        
+                return 'aborted'
+        else:
+            return 'aborted' 
+        
     def leer_centroides(self, csv_path):
         """Leer los centroides desde un archivo CSV."""
         centroides = []
@@ -93,13 +102,18 @@ class PatrolRouteNode():
         """Mover el robot a cada uno de los centroides."""
         for idx, (x, y) in enumerate(centroides):
             rospy.loginfo(f"Moviendo al paso {idx+1} a las coordenadas: ({x}, {y})")
+            self.log_pub.publish("[INFO] PATROL NODE: Patroling route...")
             result = self.mover_a_goal(x, y)
             
             if result:
+                self.log_pub.publish("[INFO] PATROL NODE: Centroid reached")
                 rospy.loginfo(f"Llegamos al paso {idx+1}")
             else:
+                self.log_pub.publish("[INFO] PATROL NODE: Centroid not reached")
                 rospy.logwarn(f"Falló al llegar al paso {idx+1}")
             
+            if self.is_active == False:
+                break
             # Esperar un poco antes de moverse al siguiente objetivo
             rospy.sleep(2)  # Ajusta el tiempo de espera según sea necesario
 
@@ -134,3 +148,17 @@ class PatrolRouteNode():
         self.client.wait_for_result()
         rospy.loginfo("Robot detenido en la posición actual.")
         self.goal_cancel = True
+
+def main():
+    rospy.init_node('PatrolRouteNode')
+    
+    moveNode = PatrolRouteNode()
+
+    if moveNode.stop_node:
+        moveNode.log_pub.publish("[INFO] PATROL NODE: Node closed")
+        moveNode.cmd_pub.publish(STOP_MOVE_NODE)
+        rospy.signal_shutdown("MoveNode_Stop")
+        
+    rospy.spin()
+if __name__ == '__main__':
+    main()

@@ -58,7 +58,7 @@ QRFINDER_ST = "qrfinder_state"
 
 # PATH
 WAYPOINT_PATH = "/home/asahel/ROS_WS/src/security_robot/output_files/default.qrlog"
-MAP_NAME = "mapa_aula"
+MAP_NAME = "casa3"
 
 
 
@@ -72,7 +72,7 @@ MAX_VSPEED = 0.5
 MAX_WSPEED = 0.5
 
 states = [IDLE_ST, FOLLOW_ST, MOVE_ST, SHUTDOWN_ST, PATROL_ST, QRFINDER_ST, IDENTIFY_ST]
-rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion)\b$"
+rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion|area(_\d+)?)\b$"
 
 # Definir los waypoints a los que el robot debe moverse
 def_waypoints = [
@@ -95,17 +95,7 @@ def update_map_name(map_name):
     Funcion principal
 """
 def main():
-    # Procesar los argumentos de línea de comandos
-    parser = argparse.ArgumentParser(description="Script for robot control")
-    parser.add_argument("--map_name", type=str, help="Specify the map name")
-    args = parser.parse_args()
-
-    # Actualizar MAP_NAME si se proporciona un argumento
-    if args.map_name:
-        update_map_name(args.map_name)
-    else:
-        print("No map name provided, using default value.")
-
+    
     # Simulación de la lógica principal del script
     print("Running the robot control script...")
     print(f"Using MAP_NAME: {MAP_NAME}")

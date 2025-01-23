@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import os
 import subprocess
 import customtkinter as ctk
@@ -42,10 +45,6 @@ def get_world_names():
     world_files = [f for f in os.listdir(world_dir) if f.endswith(".world")]
     return [os.path.splitext(f)[0] for f in world_files]
 
-
-# Inicializar la configuración de apariencia de customtkinter
-ctk.set_appearance_mode("dark")  # "dark" o "light"
-ctk.set_default_color_theme("blue")
 
 # Obtener la ruta del paquete usando rospkg
 rospack = rospkg.RosPack()
@@ -94,7 +93,7 @@ world_options = get_world_names()
 world_name = ctk.StringVar(value=world_options[0] if world_options else "")
 
 # Modos de ejecución
-modes = ["Heavy", "Light", "Minimal", "Explore"]
+modes = ["Minimal", "Light", "Heavy", "Explore", "Segmentation"]
 mode = ctk.StringVar(value=modes[0])
 
 move_person = ctk.BooleanVar(value=False)
@@ -108,22 +107,23 @@ if world_options:
         root,
         variable=world_name,
         values=world_options,
+        hover=True,
         width=173,  # Ancho del ComboBox
         height=37,  # Altura del ComboBox
         fg_color="#d9d9d9",  # Color de fondo
         border_color="#c00000",  # Color del borde
-        border_width=0,  # Grosor del borde
-        dropdown_fg_color="#d9d9d9",  # Color de fondo del menú desplegable
+        border_width=1,  # Grosor del borde
+        dropdown_fg_color="#8d8d8d",  # Color de fondo del menú desplegable
         dropdown_text_color="black",  # Color del texto en las opciones desplegables
         text_color="black",  # Color del texto seleccionado
         button_color="#8d8d8d",  # Color del botón desplegable
-        button_hover_color="#c00000",  # Color del botón al pasar el mouse
+        button_hover_color="#white",  # Color del botón al pasar el mouse
         corner_radius=10,  # Bordes redondeados
         font=("Arial", 16),  # Fuente del texto seleccionado
         dropdown_font=("Arial", 14),  # Fuente del menú desplegable
         state="readonly",  # Deshabilita la edición manual
         justify="center",
-        dropdown_hover_color="#c00000"
+        dropdown_hover_color="#c00000",
     )
     world_selector.place(x=72, y=211)
 
@@ -136,8 +136,8 @@ mode_selector = ctk.CTkComboBox(
         height=37,  # Altura del ComboBox
         fg_color="#d9d9d9",  # Color de fondo
         border_color="#c00000",  # Color del borde
-        border_width=0,  # Grosor del borde
-        dropdown_fg_color="#d9d9d9",  # Color de fondo del menú desplegable
+        border_width=1,  # Grosor del borde
+        dropdown_fg_color="#8d8d8d",  # Color de fondo del menú desplegable
         dropdown_text_color="black",  # Color del texto en las opciones desplegables
         text_color="black",  # Color del texto seleccionado
         button_color="#8d8d8d",  # Color del botón desplegable
@@ -147,7 +147,8 @@ mode_selector = ctk.CTkComboBox(
         dropdown_font=("Arial", 14),  # Fuente del menú desplegable
         state="readonly",  # Deshabilita la edición manual
         justify="center",
-        dropdown_hover_color="#c00000"
+        dropdown_hover_color="#c00000",
+        hover=True
     )
 mode_selector.place(x=453, y=211)
 
@@ -165,7 +166,7 @@ move_person_switch = ctk.CTkSwitch(
     fg_color="#8d8d8d",  # Color cuando está activado
     progress_color="lightgreen",  # Color de la barra de progreso
     button_color="white",  # Color del botón
-    button_hover_color="lightgray"  # Color del botón al pasar el cursor
+    button_hover_color="gray"  # Color del botón al pasar el cursor
 )
 move_person_switch.place(x=358, y=306)
 
@@ -182,7 +183,7 @@ rviz_switch = ctk.CTkSwitch(
     fg_color="#8d8d8d",  # Color cuando está activado
     progress_color="lightgreen",  # Color de la barra de progreso
     button_color="white",  # Color del botón
-    button_hover_color="lightgray"  # Color del botón al pasar el cursor
+    button_hover_color="gray"  # Color del botón al pasar el cursor
 )
 rviz_switch.place(x=305, y=387)
 
@@ -199,7 +200,7 @@ simulation_switch = ctk.CTkSwitch(
     fg_color="#8d8d8d",  # Color cuando está activado
     progress_color="lightgreen",  # Color de la barra de progreso
     button_color="white",  # Color del botón
-    button_hover_color="lightgray"  # Color del botón al pasar el cursor
+    button_hover_color="gray"  # Color del botón al pasar el cursor
 )
 simulation_switch.place(x=358, y=468)
 

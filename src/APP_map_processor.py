@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import cv2
 import numpy as np
 import yaml
@@ -133,7 +136,7 @@ def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir
         restricted_map = cv2.bitwise_and(original_map, dilated_mask)
 
         # Guardar el mapa modificado
-        output_path = f"{output_dir}/restricted_area_{label}.pgm"
+        output_path = f"{output_dir}/{MAP_NAME}_area_{label}.pgm"
         pgm_paths.append(output_path)  # Agregar la ruta al archivo generado
         cv2.imwrite(output_path, restricted_map)
         print(f"Mapa con área {label} restringida y dilatada guardado en {output_path}")
@@ -141,11 +144,13 @@ def save_restricted_area_overlays(input_map_path, labels, num_labels, output_dir
     return pgm_paths
 
 # Rutas de los mapas
-input_map = "../nav_maps/" + MAP_NAME + ".pgm"  # Cambia esta ruta por tu mapa original
-output_colored_map = "../output_files/" + MAP_NAME + ".png"  # Ruta para guardar la imagen coloreada
-yaml_path = "../nav_maps/" + MAP_NAME + ".yaml"   # Ruta del archivo .yaml
-output_colored_csv_path = "../output_files/" + MAP_NAME + ".csv"   # Ruta para guardar el CSV de centroides, colores y rutas .pgm
+print(MAP_NAME)
 output_dir = "../output_files/restricted_maps"  # Directorio donde guardar los mapas restringidos
+
+input_map = "../nav_maps/" + MAP_NAME + ".pgm"  # Cambia esta ruta por tu mapa original
+yaml_path = "../nav_maps/" + MAP_NAME + ".yaml"   # Ruta del archivo .yaml
+output_colored_map = "../output_files/" + MAP_NAME + ".png"  # Ruta para guardar la imagen coloreada
+output_colored_csv_path = "../output_files/" + MAP_NAME + ".csv"   # Ruta para guardar el CSV de centroides, colores y rutas .pgm
 
 # Procesar el mapa para etiquetar áreas
 labels, num_labels, centroids, region_colors = process_map(input_map, output_colored_map, yaml_path=yaml_path)

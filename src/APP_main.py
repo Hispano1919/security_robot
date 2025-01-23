@@ -26,11 +26,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, String
 from geometry_msgs.msg import Twist, Point
 
-
 import actionlib
 import re
-
-
 
 #  rostopic pub /robot_cmd std_msgs/String "start_detection"
 
@@ -64,12 +61,15 @@ class MoveState(State):
         rate = rospy.Rate(0.1)
         
         print(userdata.input_data)
+        
         if userdata.input_data in rooms and actual_state == MOVE_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
             self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
-        elif userdata.input_data in rooms and actual_state == PATROL_ST:
-            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_area.py'])
+        elif re.match(rooms, userdata.input_data) and actual_state == PATROL_ST:
+            self.log_pub.publish("[INFO] MOVE STATE: Launching launching patrol area node")
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_area.py', '--place', userdata.input_data])
         elif userdata.input_data == "route" and actual_state == PATROL_ST: 
+            self.log_pub.publish("[INFO] MOVE STATE: Launching launching patrol route node")
             self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_route.py'])
             
         while not rospy.is_shutdown():

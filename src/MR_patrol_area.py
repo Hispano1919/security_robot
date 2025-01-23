@@ -15,76 +15,89 @@ import yaml
 import random
 import rospkg
 
-from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME
+import argparse
 
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints
+from APP_config import STOP_MOVE_NODE, STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME, MAP_NAME
+
+global area_name
 
 class PatrolAreaNode():
     def __init__(self):
-        self.active = False
+        self.is_active = True
         self.clientAvailable = True
         self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         self.cmd = None
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10) 
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10) 
         self.place = None
-        self.log_msg = "[INFO] MOVE STATE: Waiting..."
+        self.stop_node = False
+
+        # Usar argparse para recoger el argumento --place
+        parser = argparse.ArgumentParser(description="Mover al robot a un lugar específico.")
+        parser.add_argument('--place', type=str, required=True, help="El nombre del lugar al que moverse")
+        args = parser.parse_args()
         
-    def start(self, map_name, area_name):
-        rospy.init_node('Patrol_Area_Node')
-        rospy.spin()
+        self.place = args.place
         
         rospack = rospkg.RosPack()
         package_path = rospack.get_path(PACK_NAME)
-        folder_path = self.package_path + "/nav_maps"
-        yaml_file = folder_path + "/" + map_name + ".yaml"
-        area_file = folder_path + "/" + area_name + ".yaml"
+        folder_path = package_path + "/nav_maps"
+        yaml_file = folder_path + "/" + MAP_NAME + ".yaml"
+        area_file = package_path + "/output_files/restricted_maps/" + MAP_NAME + "_" + self.place + ".pgm"
         
-        self.execute(yaml_file, area_file, 50)
+        self.execute(area_file, yaml_file, 50)
         
     def stop(self):
-        rospy.signal_shutdown("Stopping Patrol Area Node")
+        if self.client.get_state() == actionlib.GoalStatus.PENDING or self.client.get_state() == actionlib.GoalStatus.ACTIVE:
+            self.set_current_position_as_goal()
+            while not self.goal_cancel:
+                rospy.sleep(0.1)
+                
+        self.log_pub.publish("[INFO] PATROL NODE: Stopped patrol route node")
+        self.cmd_sub.unregister()  
+        self.is_active = False
         
     def execute(self, ruta_mapa, ruta_yaml, espaciado):
         
-        while not rospy.is_shutdown():
-            # Solicitar la configuración del área al usuario
-            #ruta_mapa = input("Ingrese la ruta del mapa segmentado: ")
-            #ruta_yaml = input("Ingrese la ruta del archivo YAML del mapa: ")
-            #espaciado = int(input("Ingrese el espaciado entre puntos de patrullaje (en píxeles): "))
+        """Configurar y patrullar un área específica del mapa."""
+        #print("Patrullar")
+        # Cargar el mapa segmentado y obtener parámetros
+        mapa_binario = self.cargar_mapa(ruta_mapa)
+        resolucion, origen = self.leer_parametros_mapa(ruta_yaml)
+
+        # Generar puntos de patrullaje
+        puntos_patrullaje = self.generar_puntos(mapa_binario, espaciado)
+
+        # Seleccionar 5 puntos aleatorios
+        puntos_seleccionados = self.seleccionar_puntos_aleatorios(puntos_patrullaje, cantidad=5)
+
+        # Convertir los puntos seleccionados a coordenadas reales
+        puntos_coordenadas = self.convertir_a_coordenadas(puntos_seleccionados, mapa_binario, resolucion, origen)
+
+        # Patrullar los puntos seleccionados
+        for x, y in puntos_coordenadas:
+            resultado = self.mover_a_goal(x, y)
+            if resultado:
+                rospy.loginfo(f"Goal alcanzado en ({x}, {y})")
+            else:
+                rospy.loginfo(f"Error alcanzando el goal en ({x}, {y})")
+            if self.is_active == False:
+                break
         
-            """Configurar y patrullar un área específica del mapa."""
-            print("Patrullar")
-            # Cargar el mapa segmentado y obtener parámetros
-            mapa_binario = self.cargar_mapa(ruta_mapa)
-            resolucion, origen = self.leer_parametros_mapa(ruta_yaml)
-
-            # Generar puntos de patrullaje
-            puntos_patrullaje = self.generar_puntos(mapa_binario, espaciado)
-
-            # Seleccionar 5 puntos aleatorios
-            puntos_seleccionados = self.seleccionar_puntos_aleatorios(puntos_patrullaje, cantidad=5)
-
-            # Convertir los puntos seleccionados a coordenadas reales
-            puntos_coordenadas = self.convertir_a_coordenadas(puntos_seleccionados, mapa_binario, resolucion, origen)
-
-            # Patrullar los puntos seleccionados
-            for x, y in puntos_coordenadas:
-                resultado = self.mover_a_goal(x, y)
-                if resultado:
-                    rospy.loginfo(f"Goal alcanzado en ({x}, {y})")
-                else:
-                    rospy.loginfo(f"Error alcanzando el goal en ({x}, {y})")
+        self.stop()      
+        self.stop_node = True
+        
 
     def cmd_callback(self, msg):
             
         if msg.data == STOP_MOVE_CMD:
-            self.active = False
-            self.set_current_position_as_goal()
+            self.is_active = False
+            self.stop()
         
     def cargar_mapa(self, ruta_mapa):
         """Cargar el mapa segmentado en formato PGM y binarizarlo."""
-        print("Cargar Mapa")
+        #print("Cargar Mapa")
         mapa = cv2.imread(ruta_mapa, cv2.IMREAD_GRAYSCALE)
         if mapa is None:
             raise FileNotFoundError(f"No se pudo cargar el mapa en {ruta_mapa}")
@@ -93,7 +106,7 @@ class PatrolAreaNode():
 
     def leer_parametros_mapa(self, ruta_yaml):
         """Leer resolución y origen del mapa desde el archivo YAML."""
-        print("Leer yaml")
+        #print("Leer yaml")
         with open(ruta_yaml, 'r') as yaml_file:
             yaml_data = yaml.safe_load(yaml_file)
         resolucion = yaml_data['resolution']
@@ -102,7 +115,7 @@ class PatrolAreaNode():
 
     def generar_puntos(self, mapa_binario, espaciado, distancia_minima=5):
         """Generar puntos de patrullaje distribuidos uniformemente en el área navegable, evitando zonas cercanas a píxeles negros."""
-        print("Generando puntos de patrullaje")
+        #print("Generando puntos de patrullaje")
         altura, ancho = mapa_binario.shape
         puntos = []
         
@@ -124,7 +137,7 @@ class PatrolAreaNode():
 
     def seleccionar_puntos_aleatorios(self, puntos, cantidad=5):
         """Seleccionar una cantidad específica de puntos aleatorios de la lista."""
-        print("Puntos aleatorios")
+        #print("Puntos aleatorios")
         if len(puntos) > cantidad:
             return random.sample(puntos, cantidad)  # Selecciona 'cantidad' puntos aleatorios
         else:
@@ -132,7 +145,7 @@ class PatrolAreaNode():
 
     def convertir_a_coordenadas(self, puntos, mapa_binario, resolucion, origen):
         """Convertir puntos de píxeles en el mapa a coordenadas reales en el marco 'map'."""
-        print("Coordenadas")
+        #print("Coordenadas")
         puntos_coordenadas = []
         for px, py in puntos:
             x = px * resolucion + origen[0]
@@ -141,21 +154,24 @@ class PatrolAreaNode():
         return puntos_coordenadas
 
     def mover_a_goal(self, x, y):
-        """Enviar un goal al robot para moverse a una ubicación específica."""
-        print("Movimiento")
-        client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        client.wait_for_server()
+        # Si el cliente move_base esta activo
+        if self.clientAvailable:
+            goal = MoveBaseGoal()
+            goal.target_pose.header.frame_id = "map"
+            goal.target_pose.header.stamp = rospy.Time.now()
+            goal.target_pose.pose.position.x = x
+            goal.target_pose.pose.position.y = y
+            goal.target_pose.pose.orientation.w = 1.0  # Orientación neutra (sin rotación)
 
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = "map"
-        goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.pose.position.x = x
-        goal.target_pose.pose.position.y = y
-        goal.target_pose.pose.orientation.w = 1.0
-
-        client.send_goal(goal)
-        client.wait_for_result()
-        return client.get_result()
+            self.client.send_goal(goal)
+            self.client.wait_for_result()
+        
+            if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
+                return 'succeeded'
+            else:        
+                return 'aborted'
+        else:
+            return 'aborted' 
 
     def set_current_position_as_goal(self):
         """Establece la posición actual del robot como un nuevo objetivo."""
@@ -188,3 +204,18 @@ class PatrolAreaNode():
         self.client.wait_for_result()
         rospy.loginfo("Robot detenido en la posición actual.")
         self.goal_cancel = True
+        
+
+def main():
+    rospy.init_node('QRWaypointMoveNode')
+    
+    moveNode = PatrolAreaNode()
+
+    if moveNode.stop_node:
+        moveNode.log_pub.publish("[INFO] PATROL NODE: Node closed")
+        moveNode.cmd_pub.publish(STOP_MOVE_NODE)
+        rospy.signal_shutdown("MoveNode_Stop")
+        
+    rospy.spin()
+if __name__ == '__main__':
+    main()

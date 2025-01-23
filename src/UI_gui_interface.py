@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function  # Asegura que print sea una función en Python 2.7
 import tkinter as tk
@@ -17,7 +18,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image  # Asegurarse de que la clase Image de ROS se importa correctamente
 from std_msgs.msg import String
 
-from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST
+from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, MAP_NAME, TOPIC_RGBCAM
 from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD
 
 class MapaApp:
@@ -36,7 +37,7 @@ class MapaApp:
         self.canvas_camera.grid(row=0, column=1, padx=10, pady=10, sticky="ne")
 
         # Suscribirse al topic de la cámara
-        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.callback_camera)
+        self.image_sub = rospy.Subscriber(TOPIC_RGBCAM, Image, self.callback_camera)
 
         # Cargar mapas y parámetros
         self.mapa = cv2.imread(ruta_mapa)
@@ -260,13 +261,6 @@ class MapaApp:
 
     def patrullar(self, ruta_pgm):
         """Función que llama al módulo de patrullaje y realiza el patrullaje."""
-        try:
-            # Rutas fijas (ajusta según sea necesario)
-            ruta_yaml = "casa_3.yaml"
-            espaciado = 10  # Configuración fija o ajustable
-            #patrullaje.main(ruta_pgm, ruta_yaml, espaciado)  # Llamada directa a la función
-        except Exception as e:
-            print("Error al ejecutar el patrullaje: {0}".format(e))
 
     def click_event_mapa(self, event):
         """Evento para manejar clics en el mapa y mover el robot."""
@@ -322,11 +316,11 @@ def main():
     rospy.init_node('seleccionar_pixel_y_mover')
 
     # Solicitar rutas del mapa y YAML al usuario
-    ruta_mapa = input("Ingrese la ruta del mapa segmentado: ")
-    ruta_yaml = input("Ingrese la ruta del archivo YAML del mapa: ")
-    ruta_mapa_coloreado = input("Ingrese la ruta del mapa coloreado: ")
-    ruta_csv = input("Ingrese la ruta del archivo CSV de colores: ")
-
+    ruta_mapa = "../nav_maps/" + MAP_NAME + ".pgm"
+    ruta_yaml = "../nav_maps/" + MAP_NAME + ".yaml"
+    ruta_mapa_coloreado = "../output_files/" + MAP_NAME + ".png"
+    ruta_csv = "../output_files/" + MAP_NAME + ".csv"
+ 
     # Crear la ventana de Tkinter
     root = tk.Tk()
     app = MapaApp(root, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv)
