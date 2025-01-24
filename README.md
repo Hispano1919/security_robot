@@ -35,7 +35,7 @@
 <!-- GETTING STARTED -->
 ## Introducción
 
-Este repositorio contiene el paquete de ROS proyecto_servicios para la asignatura Robótica de Servicios.
+Este repositorio contiene el paquete de ROS security_robot para la asignatura Robots Móviles.
 
 ### Prerequisitos
 
@@ -43,10 +43,6 @@ Estos son los siguientes requisitos que se necesitan para poder usar el paquete:
 1. ROS Noetic para Ubuntu: [http://wiki.ros.org/noetic/Installation/Ubuntu](http://wiki.ros.org/noetic/Installation/Ubuntu)
 2. Turtlebot2: 
 Instalar el simulador de Turtlebot 2
-
-Estos robots sí los tenemos en el laboratorio, de modo que lo que pruebes en el simulador luego podrás probarlo con los robots reales. Por desgracia, no tienen soporte oficial para Noetic, lo que nos va a obligar a compilar los fuentes.
-
-Para descargar los fuentes de los diversos repositorios necesarios de manera automática necesitas bajarte primero este fichero tb2.rosinstall. Bájatelo y déjalo en tu directorio $HOME (tu directorio personal, o sea /home/tu_nombre_de_usuario).
 
 * Instrucciones
   ```sh
@@ -77,13 +73,13 @@ Para descargar los fuentes de los diversos repositorios necesarios de manera aut
    
 ### Instalación
 
-Para instalar el paquete proyecto_servicios:
+Para instalar el paquete security_robot:
 
 1. Clonar el repositorio dentro de la carpeta src del WS de catkin:
    ```sh
-   git clone https://github.com/AsahelHT/proyecto_servicios.git
+   git clone https://github.com/Hispano1919/security_robot.git
    ```
-2. Cambiar el nombre del directorio descargado a proyecto_servicios (sólo si tiene otro nombre, como por ejemplo: proyecto_servicios-master)
+2. Cambiar el nombre del directorio descargado a security_robot (sólo si tiene otro nombre, como por ejemplo: security_robot-master)
 
 3. Dependencias de Python:
    ```sh
@@ -93,7 +89,7 @@ Para instalar el paquete proyecto_servicios:
 4. Desde el directorio raiz del WS de catkin:
    ```sh
    # Compila el paquete de ROS
-   catkin build proyecto_servicios
+   catkin build security_robot
 
    # Actualiza el entorno
    source devel/setup.bash
@@ -107,125 +103,78 @@ Con estos pasos el paquete ya debería estar correctamente compilado y listo par
 ## Uso
 
 ### Simulación
-Para usar este paquete se ha implementado un fichero run.sh que permite lanzar la aplicación de manera cómoda y sencilla en simulación:
-
-+ Desde una terminal situada en la carpeta raiz del paquete:
-   ```sh
-      ./run.sh <option> <move_person> <rviz>
+Para usar este paquete se ha implementado una interfaz visual que permite lanzar la aplicación de manera cómoda y sencilla en simulación:
+Desde una terminal situada en la carpeta src del paquete:
+```sh
+      python UI_launcher.py
    ```
-   1. Opción minimal:
-      ```sh
-         ./run.sh minimal <move_person> <rviz>
-      ```
-      - Se lanzan los nodos:
-         - Deteccion de personas
-         - Interfaz por línea de comandos
-         - Nodo principal (main)
 
-   2. Opción light:
-      ```sh
-         ./run.sh light <move_person> <rviz>
-      ```
+Esto abrirá una interfaz gráfica con todas las opciones disponibles de la aplicación
+
+![Interfaz de Lanzamiento](./images/gui_capture.png)
++ Mapa
+   Permite escoger el mapa que se desea utilizar en la aplicación. Se leen cargan automáticamente los mapas situados en la carpeta worlds del paquete.
+
++ Modo
+   
+   1. Minimal:
+      - Se lanzan los nodos:
+         - Interfaz por línea de comandos
+         - Nodo principal (APP_main)
+
+   2. Light:
+
       - Se lanzan los nodos:
          - Deteccion de personas
          - Control de voz
          - Interfaz visual
-         - Nodo principal (main)
+         - Nodo principal (APP_main)
 
-   3. Opción heavy:
-      ```sh
-         ./run.sh heavy <move_person> <rviz>
-      ```
+   3. Heavy:
       - Se lanzan todos los nodos:
          - Deteccion de personas
          - Control de voz
          - Control por gestos
          - Interfaz visual
          - Interfaz por línea de comandos
-         - Nodo principal (main)
+         - Nodo principal (APP_main)
 
-   4. Opción qr:
-      ```sh
-         ./run.sh qr <move_person> <rviz>
-      ```
-      Se lanza un módulo independiente para recorrer un entorno detectando QRs y guardar las posiciones donde se ha detectado el QR para poder navegar posteriormente hacia allí.
-
-
-   5. El argumento move_person lanzará el nodo de movimiento de persona en un entorno simulado de gazebo:
-         ```sh
-            ./run.sh <option> move_person <rivz>
-         ```
-   6. El argumento rviz lanzará el entorno de visualización rviz:
-         ```sh
-            ./run.sh <option> <move_person> rviz
-         ```
-
-+ Si se desea lanzar un nodo por separado se puede seguir el procedimiento habitual de ROS, mediante rosnode:
-   Ejemplo, lanzar move_person sin usar run.sh. (Debe realizarse source <path_to_catkin_ws>/devel/setup.bash primero)
-   ```sh
-      rosrun proyecto_servicios move_person.py
-   ```
+   4. Explore:
+      Se lanza un módulo independiente para explorar y mapear automáticamente el entorno.
    
-+ Para cerrar la aplicación se puede presionar cualquier tecla en el terminal donde se ejecutó el fichero run.sh
-   + Alternativamente, mediante la interfaz visual (botón shutdown), la interfaz de comandos (escribiendo apagar) o mediante comando por voz (diciendo "adiós" o "apagar"), se cerrará la aplicación.
-   + Si algun proceso no se cierra correctamente, simplemente se debe cerrar la terminal o abortar el proceso en la misma mediante CTRL + C.
+   5. Segmentation:
+      Se lanza un módulo independiente para segmentar por áreas el mapa seleccionado.
 
-#### Modficiación del entorno de simulación
-Para cambiar el entorno de simulación de Gazebo a uno diferente del establecido por defecto existen dos opciones:
++ MovePerson
+Activando move_person se lanzará el nodo de movimiento de persona en un entorno simulado de gazebo.
+         
++ RVIZ 
+Activando rviz lanzará el entorno de visualización rviz.
 
-   1. Para poder lanzarlo mediante el run.sh:
-      Dentro del fichero world.launch, cambiar el path que hace referencia al fichero del mundo .world deseado:
-       <arg name="world_file" default="$(find proyecto_servicios)/worlds/<.world deseado>"/>
-
-   2. Lanzar world.launch de manera independiente y pasar el .world deseado como argumento:
-      ```sh
-         roslaunch proyecto_servicios world.launch world_file:=<path to .world>
-      ```
-Para lanzar el stack de navegación en un entorno diferente al establecido por defecto existen dos opciones:
-   
-   1. Para poder lanzarlo mediante el run.sh:
-      Dentro de navigation.launch modificar la siguiente linea para que haga referencia al fichero .yaml del mapa que se quiere usar:
-   <arg name="map_file" default="$(find proyecto_servicios)/nav_maps/mapa_campo.yaml" />
-
-   2. Lanzar navigation.launch de manera independiente y pasar el mapa deseado como argumento:
-      ```sh
-         roslaunch proyecto_servicios navigation.launch map_file:=<path to .yaml>
-      ```
-
-### Robot real
-Si se pretende usar el paquete conjuntamente con el Turtlebot2 real, basta con lanzar la colección de nodos deseados mediante sus respectivos .launch en la máquina conectada al robot:
-1. minimal:
-```sh
-   roslaunch proyecto_servicios nodes_minimal.launch
-```
-2. light:
-```sh
-   roslaunch proyecto_servicios nodes_light.launch
-```
-3. heavy:
-```sh
-   roslaunch proyecto_servicios nodes_heavy.launch
-```
-
-Para lanzar el stack de navegación en un entorno diferente al establecido por defecto existen dos opciones:
-   
-   1. Para poder lanzarlo mediante el run.sh:
-      Dentro de navigation.launch modificar la siguiente linea para que haga referencia al fichero .yaml del mapa que se quiere usar:
-   <arg name="map_file" default="$(find proyecto_servicios)/nav_maps/mapa_campo.yaml" />
-
-   2. Lanzar navigation.launch de manera independiente y pasar el mapa deseado como argumento:
-      ```sh
-      roslaunch proyecto_servicios navigation.launch map_file:=<path to .yaml>
-      ```
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
++ Simulación
+Por defecto activado, lanza la simulación en Gazebo. Se debe desactivar para utilizar el paquete sobre el Turtlebot real.
 
 ## Workspace
 
 El workspace del paquete está distribuido de la siguiente manera:
 ```plaintext
-📂 proyecto_servicios
+📂 security_robot
 ├── 🔧 CMakeLists.txt
+├── 📂 config
+│   ├── ⚙️ costmap_common_params.yaml
+│   ├── ⚙️ costmap_common.yaml
+│   ├── ⚙️ costmap_global.yaml
+│   ├── ⚙️ costmap_local.yaml
+│   ├── ⚙️ exploration.yaml
+│   ├── ⚙️ move_base.yaml
+│   ├── ⚙️ navfn_global_planner_params.yaml
+│   ├── ⚙️ planner_global.yaml
+│   └── ⚙️ planner_local.yaml
+├── 📂 images
+│   └── ...
 ├── 📂 launch
+│   ├── 📁 includes
+│   ├── 🌐 exploration.launch
 │   ├── 🌐 navigation.launch
 │   ├── 🌐 nodes_heavy.launch
 │   ├── 🌐 nodes_light.launch
@@ -233,10 +182,7 @@ El workspace del paquete está distribuido de la siguiente manera:
 │   ├── 🌐 person_world.launch
 │   └── 🌐 world.launch
 ├── 📂 nav_maps
-│   ├── 🖼️ mapa_aula.pgm
-│   ├── 🖼️ mapa_aula.yaml
-│   ├── 🖼️ mapa_campo.pgm
-│   └── 🖼️ mapa_campo.yaml
+│   └── ...
 ├── 📂 obj_models
 │   ├── 📁 person_walking
 │   │   ├── ...
@@ -253,24 +199,33 @@ El workspace del paquete está distribuido de la siguiente manera:
 │   └── 📁 qr_wc
 │       ├── ...
 │       ...
+├── 📂 output_files
+│   ├── 📂 restricted_maps
+│   ...
 ├── 📜 package.xml
 ├── 📜 README.md
 ├── 🔧 requirements.txt
-├── 🚀 run.sh
 ├── 📂 src
-│   ├── 🛠️ bash_interface.py
-│   ├── 🛠️ hand_control.py
-│   ├── 🚀 main.py
-│   ├── 🤖 move_person.py
-│   ├── 🤖 pDetector_mediapipeGPU.py
-│   ├── 🤖 pDetector_mediapipe.py
-│   ├── 🤖 pDetector_MoveNet.py
-│   ├── 🔍 qr_code_log.txt
-│   ├── 🔍 QR_detection.py
-│   ├── 🔍 QR_finder.py
-│   ├── 🛠️ save_pos.py
-│   ├── 🛠️ user_gui.py
-│   └── 🗣️ voice_control.py
+│   ├── 🛠️ APP_config.py
+│   ├── 🚀 APP_main.py
+│   ├── 🛠️ APP_map_name_updater.py
+│   ├── 🛠️ APP_map_processor.py
+│   ├── 🤖 APP_move_person.py
+│   ├── 🤖 MR_follow_person.py
+│   ├── 🤖 MR_move_to_point.py
+│   ├── 🤖 MR_move_to_qrWaypoint.py
+│   ├── 🤖 MR_patrol_area.py
+│   ├── 🤖 MR_patrol_route.py
+│   ├── 🛠️ run.sh
+│   ├── 🔍 RV_pDetector_mediapipe.py
+│   ├── 🔍 RV_pDetector_mediapipeGPU.py
+│   ├── 🔍 RV_pDetector_MoveNet.py
+│   ├── 🔍 RV_QR_finder.py
+│   ├── 🛠️ UI_bash_interface.py
+│   ├── 🛠️ UI_gui_interface.py
+│   ├── 🛠️ UI_hand_control.py
+│   ├── 🛠️ UI_launcher.py
+│   └── 🗣️ UI_voice_control.py
 ├── 📂 trained_models
 │   ├── 🤖 lite-model_movenet_singlepose_lightning_3.tflite
 │   ├── 🤖 pose_landmarker_full.task
@@ -280,18 +235,19 @@ El workspace del paquete está distribuido de la siguiente manera:
 │       ├── ...
 │       ...
 └── 📂 worlds
-    ├── 🌐 campo.world
-    ├── 🌐 casa2_persona.world
+    ├── 🌐 casa1.world
     ├── 🌐 casa2.world
     ├── 🌐 casa3.world
+    ├── 🌐 casa4.world
     ├── 🌐 casa_grande.world
-    ├── 🌐 empty_person.world
-    └── 🌐 person_world.world
+    ├── 🌐 random.world
+    └── 🌐 security_world.world
+
 ```
 
 1. En la carpeta /launch se encuentran todos los ficheros .launch implementados. Estos .launch son lanzados de manera automática por el fichero run.sh pero pueden ser lanzados independientemente mediante el paquete de ROS, roslaunch:
 ```sh
-   roslaunch proyecto_servicios <launch file>
+   roslaunch security_robot <launch file>
 ```
 
 2. La carpeta /nav_maps contiene los mapas usados por el stack de navegación. Aquí deben situarse los mapas construidos.
@@ -304,13 +260,6 @@ El workspace del paquete está distribuido de la siguiente manera:
 
 6. En /worlds contiene los ficheros .world que utiliza Gazebo para la simulación. Por defecto se lanza la simulación casa3.world.
 
-<!-- ACKNOWLEDGMENTS -->
-## Participantes
-
-- Pablo Tarancón Meseguer
-- Pelayo López González
-- Christofher Javier Riofrio Cuadrado
-- Asahel Hernández Torné
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

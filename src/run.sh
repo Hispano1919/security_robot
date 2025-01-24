@@ -66,7 +66,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [ "$MODE" == "segmentation"]; then
+if [ "$MODE" == "segmentation" ]; then
   SIMULATION="false"
   echo "Skipping world and navigation launch for map segmentation"
 fi

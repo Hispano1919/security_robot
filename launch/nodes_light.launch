@@ -10,6 +10,8 @@
   <arg name="map_file" default="$(find security_robot)/nav_maps/$(arg world_name).yaml" />
   <arg name="rviz" default="false" />
   
+  
+
   <!-- BASH INTERFACE -->
   <node name="bash_interface" pkg="security_robot" type="UI_bash_interface.py" output="screen" respawn="false" if="$(arg bash_gui)"
     launch-prefix="gnome-terminal --title=$(arg bash_title) -- bash -c">
@@ -36,10 +38,12 @@
   <node name="move_person" pkg="security_robot" type="APP_move_person.py" output="screen" respawn="false" if="$(arg sim)">
     <param name="required" value="true"/>
   </node>
-  
+
   <!-- Nodo para robot_control.py -->
   <node name="main" pkg="security_robot" type="APP_main.py" output="screen" respawn="false">
     <param name="required" value="true"/>
   </node>
+
+  
 
 </launch>

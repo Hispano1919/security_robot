@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 from __future__ import print_function  # Asegura que print sea una función en Python 2.7
 import tkinter as tk
 import cv2
@@ -12,6 +13,7 @@ import threading
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from PIL import Image as PILImage, ImageTk  # Usamos PILImage para evitar conflictos con sensor_msgs.Image
 import csv
+import re
 import subprocess  # Para llamar al script
 #import patrullaje  # Importar el módulo directamente
 from cv_bridge import CvBridge
@@ -19,7 +21,7 @@ from sensor_msgs.msg import Image  # Asegurarse de que la clase Image de ROS se 
 from std_msgs.msg import String
 
 from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, MAP_NAME, TOPIC_RGBCAM
-from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD
+from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD, PATROL_ST, MOVE_ST
 
 class MapaApp:
     def __init__(self, master, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv):
@@ -31,13 +33,36 @@ class MapaApp:
 
         # Inicializar CvBridge para convertir mensajes ROS a imágenes OpenCV
         self.bridge = CvBridge()
+        ##################################################################################
+        # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar #
+        ##################################################################################
 
-        # Crear un Canvas para mostrar la cámara
-        self.canvas_camera = tk.Canvas(self.master, width=640, height=480)
-        self.canvas_camera.grid(row=0, column=1, padx=10, pady=10, sticky="ne")
+        # Crear un Frame para contener la cámara
+        self.frame_camera = tk.Frame(self.master, bg="lightgrey", padx=10, pady=10, borderwidth=2, relief="ridge")
+        self.frame_camera.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+        # Configurar el comportamiento del grid para que el Frame se expanda
+        self.master.grid_rowconfigure(0, weight=1)  # Expande la fila 0
+        self.master.grid_columnconfigure(1, weight=1)  # Expande la columna 1
+
+        # Crear un contenedor (Frame) interno para centrar el canvas de la cámara
+        self.frame_camera_center = tk.Frame(self.frame_camera, bg="black")
+        self.frame_camera_center.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Configurar el comportamiento del grid para que el contenedor se expanda
+        self.frame_camera.grid_rowconfigure(0, weight=1)  # Expande la fila del contenedor
+        self.frame_camera.grid_columnconfigure(0, weight=1)  # Expande la columna del contenedor
+
+        # Crear un Canvas para mostrar la cámara dentro del contenedor centrado
+        self.canvas_camera = tk.Canvas(self.frame_camera_center, width=640, height=480)
+        self.canvas_camera.grid(row=0, column=0, padx=10, pady=10)
+
+        # Asegúrate de que el Canvas se expanda dentro del Frame
+        self.frame_camera_center.grid_rowconfigure(0, weight=1)  # Expande la fila del canvas
+        self.frame_camera_center.grid_columnconfigure(0, weight=1)  # Expande la columna del canvas
 
         # Suscribirse al topic de la cámara
-        self.image_sub = rospy.Subscriber(TOPIC_RGBCAM, Image, self.callback_camera)
+        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.callback_camera)
 
         # Cargar mapas y parámetros
         self.mapa = cv2.imread(ruta_mapa)
@@ -53,48 +78,138 @@ class MapaApp:
         self.mapa_tk = ImageTk.PhotoImage(image=PILImage.fromarray(cv2.cvtColor(self.mapa, cv2.COLOR_BGR2RGB)))
         self.mapa_coloreado_tk = ImageTk.PhotoImage(image=PILImage.fromarray(cv2.cvtColor(self.mapa_coloreado, cv2.COLOR_BGR2RGB)))
 
-        # Crear el Canvas de Tkinter para mostrar el mapa
-        self.canvas_mapa = tk.Canvas(self.master, width=self.mapa_tk.width(), height=self.mapa_tk.height())
-        self.canvas_mapa.create_image(0, 0, anchor=tk.NW, image=self.mapa_tk)
-        self.canvas_mapa.grid(row=0, column=0, padx=10, pady=10, sticky="nw")  # Coloca en la fila 1, columna 0
+        # Crear un Frame para contener el mapa y centrarlo
+        self.frame_mapa = tk.Frame(self.master, bg="lightgrey", padx=10, pady=10, borderwidth=2, relief="ridge")
+        self.frame_mapa.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        # Crear el Canvas de Tkinter para mostrar el mapa coloreado
-        self.canvas_mapa_coloreado = tk.Canvas(self.master, width=self.mapa_coloreado_tk.width(), height=self.mapa_coloreado_tk.height())
+        # Configurar el grid para que el Frame del mapa se expanda
+        self.master.grid_rowconfigure(0, weight=1)
+        self.master.grid_columnconfigure(0, weight=1)
+
+        # Crear un contenedor (Frame) interno para centrar el Canvas del mapa
+        self.frame_mapa_center = tk.Frame(self.frame_mapa, bg="black")
+        self.frame_mapa_center.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        # Configurar el grid para que el contenedor interno se expanda
+        self.frame_mapa.grid_rowconfigure(0, weight=1)
+        self.frame_mapa.grid_columnconfigure(0, weight=1)
+
+        # Crear el Canvas de Tkinter para mostrar el mapa dentro del contenedor centrado
+        self.canvas_mapa = tk.Canvas(self.frame_mapa_center, width=self.mapa_tk.width(), height=self.mapa_tk.height())
+        self.canvas_mapa.create_image(0, 0, anchor=tk.NW, image=self.mapa_tk)
+        self.canvas_mapa.grid(row=0, column=0, padx=10, pady=10)
+
+        # Asegúrate de que el Canvas se expanda dentro del Frame
+        self.frame_mapa_center.grid_rowconfigure(0, weight=1)
+        self.frame_mapa_center.grid_columnconfigure(0, weight=1)
+
+        # Repite lo mismo para el Canvas del mapa coloreado
+        self.frame_mapa_coloreado = tk.Frame(self.master, bg="lightgrey", padx=10, pady=10, borderwidth=2, relief="ridge")
+        self.frame_mapa_coloreado.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.master.grid_rowconfigure(1, weight=1)
+
+        self.frame_mapa_coloreado_center = tk.Frame(self.frame_mapa_coloreado, bg="black")
+        self.frame_mapa_coloreado_center.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.frame_mapa_coloreado.grid_rowconfigure(0, weight=1)
+        self.frame_mapa_coloreado.grid_columnconfigure(0, weight=1)
+
+        self.canvas_mapa_coloreado = tk.Canvas(self.frame_mapa_coloreado_center, width=self.mapa_coloreado_tk.width(), height=self.mapa_coloreado_tk.height())
         self.canvas_mapa_coloreado.create_image(0, 0, anchor=tk.NW, image=self.mapa_coloreado_tk)
-        self.canvas_mapa_coloreado.grid(row=1, column=0, padx=10, pady=10, sticky="nw")  # Coloca en la fila 1, columna 1
+        self.canvas_mapa_coloreado.grid(row=0, column=0, padx=10, pady=10)
+
+        self.frame_mapa_coloreado_center.grid_rowconfigure(0, weight=1)
+        self.frame_mapa_coloreado_center.grid_columnconfigure(0, weight=1)
+
+        #####################3
 
         # Crear un Frame para contener los botones
         self.frame_botones = tk.Frame(self.master, bg="lightgrey", padx=10, pady=10, borderwidth=2, relief="ridge")
         self.frame_botones.grid(row=1, column=1, sticky="nsew", padx=10, pady=10, columnspan=1)
 
-        # Hacer que el grid se expanda para ocupar el espacio disponible
-        self.master.grid_rowconfigure(1, weight=1)  # Esto hace que la fila 1 (donde está el frame_botones) se expanda
-        self.master.grid_columnconfigure(1, weight=1)  # Esto hace que la columna 1 (donde está el frame_botones) se expanda
+        # Configurar el grid del Frame para centrar los botones
+        self.frame_botones.grid_rowconfigure(0, weight=1)
+        self.frame_botones.grid_rowconfigure(1, weight=1)
+        self.frame_botones.grid_rowconfigure(2, weight=1)
+        self.frame_botones.grid_columnconfigure(0, weight=1)
 
-        # Añadir botones al Frame
-        self.boton1 = tk.Button(self.frame_botones, text="Stop Robot", command=self.funcion_boton1, width=15, bg="#007BFF", fg="white")
-        self.boton2 = tk.Button(self.frame_botones, text="Go home", command=self.funcion_boton2, width=15, bg="#28A745", fg="white")
-        self.boton3 = tk.Button(self.frame_botones, text="Centroides", command=self.funcion_boton3, width=15, bg="#DC3545", fg="white")
+        # Añadir botones al Frame (haciendo que sean cuadrados)
+        button_size = 10  # Tamaño de los botones (ancho y alto)
 
-        # Organizar los botones verticalmente en el Frame
-        self.boton1.pack(side="top", pady=5)
-        self.boton2.pack(side="top", pady=5)
-        self.boton3.pack(side="top", pady=5)
+        self.boton1 = tk.Button(self.frame_botones, text="Stop\nRobot", command=self.funcion_boton1, bg="#007BFF", fg="white", width=button_size, height=button_size)
+        self.boton2 = tk.Button(self.frame_botones, text="Go\nHome", command=self.funcion_boton2, bg="#28A745", fg="white", width=button_size, height=button_size)
+        self.boton3 = tk.Button(self.frame_botones, text="Centroides", command=self.funcion_boton3, bg="#DC3545", fg="white", width=button_size, height=button_size)
 
+        # Colocar los botones en un grid y centrarlos
+        self.boton1.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
+        self.boton2.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.boton3.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+
+
+        #####################
+        
         # Integrar la consola de comandos
         self.command_frame = tk.Frame(self.master, bg="lightgrey", padx=10, pady=10, borderwidth=2, relief="ridge")
         self.command_frame.grid(row=1, column=2, columnspan=2, padx=10, pady=10, sticky="nsew")
 
+        # Configurar el grid para que la consola ocupe todo el espacio disponible
+        self.command_frame.grid_rowconfigure(0, weight=1)  # La consola de texto
+        self.command_frame.grid_rowconfigure(1, weight=0)  # La entrada de texto
+        self.command_frame.grid_rowconfigure(2, weight=0)  # El botón
+        self.command_frame.grid_columnconfigure(0, weight=1)
+
         # Crear widgets para la consola de comandos
         self.console = tk.Text(self.command_frame, height=10, width=60)
-        self.console.pack()
+        self.console.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)  # Expande para ocupar espacio
 
         self.command_entry = tk.Entry(self.command_frame, width=60)
-        self.command_entry.pack()
+        self.command_entry.grid(row=1, column=0, sticky="ew", padx=5, pady=5)  # Expande horizontalmente
 
         self.send_button = tk.Button(self.command_frame, text="Enviar", command=self.send_command)
-        self.send_button.pack()
+        self.send_button.grid(row=2, column=0, sticky="ew", padx=5, pady=5)  # Botón centrado horizontalmente
 
+        ###############################################33
+
+        # Crear un Frame para la imagen
+        self.frame_imagen = tk.Frame(self.master, bg="white", padx=10, pady=10, borderwidth=2, relief="ridge")
+        self.frame_imagen.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")  # Ubicar el Frame en la celda 0,2
+
+        # Configurar el grid para que la celda del Frame se expanda
+        self.master.grid_rowconfigure(0, weight=1)
+        self.master.grid_columnconfigure(2, weight=1)
+
+        # Configurar el Frame para expandirse dentro de su celda
+        self.frame_imagen.grid_rowconfigure(0, weight=1)
+        self.frame_imagen.grid_columnconfigure(0, weight=1)
+
+        # Crear un Canvas dentro del Frame
+        self.canvas_imagen = tk.Canvas(self.frame_imagen, bg="lightgrey")
+        self.canvas_imagen.grid(row=0, column=0, sticky="nsew")  # Hacer que el Canvas ocupe todo el Frame
+
+        # Cargar la imagen
+        self.imagen_original = PILImage.open("../images/robot.png")  # Reemplaza con la ruta de tu imagen
+
+        # Redibujar la imagen para que ocupe todo el Frame dinámicamente
+        def actualizar_imagen(event):
+            # Obtener el tamaño actual del Frame
+            ancho = event.width
+            alto = event.height
+
+            # Redimensionar la imagen original al tamaño del Frame
+            imagen_redimensionada = self.imagen_original.resize((ancho, alto), PILImage.ANTIALIAS)
+            self.imagen_tk = ImageTk.PhotoImage(imagen_redimensionada)
+
+            # Limpiar el Canvas y mostrar la imagen redimensionada
+            self.canvas_imagen.delete("all")
+            self.canvas_imagen.create_image(0, 0, anchor=tk.NW, image=self.imagen_tk)
+
+        # Vincular el evento de redimensionamiento al Canvas
+        self.canvas_imagen.bind("<Configure>", actualizar_imagen)
+
+        ##################################################################################
+        # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar # Copiar #
+        ##################################################################################
         # Crear los Publishers y Subscriber de ROS
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=1)
@@ -154,6 +269,7 @@ class MapaApp:
         print("Botón 2 presionado.")
 
     def funcion_boton3(self):
+        self.cmd_pub.publish(PATROL_ST + ':' + "route")
         print("Botón 3 presionado.")
 
     def callback_camera(self, msg):
@@ -261,6 +377,21 @@ class MapaApp:
 
     def patrullar(self, ruta_pgm):
         """Función que llama al módulo de patrullaje y realiza el patrullaje."""
+        try:
+            # Rutas fijas (ajusta según sea necesario)
+            #ruta_yaml = "casa_3.yaml"
+            #espaciado = 10  # Configuración fija o ajustable
+            #patrullaje.main(ruta_pgm, ruta_yaml, espaciado)  # Llamada directa a la función
+            # Obtener el nombre del área desde el archivo PGM
+
+            nombre_area = ruta_pgm.split('/')[-1].replace('.pgm', '')
+            resultado = re.search(r'area_\d+', nombre_area).group()
+            print(resultado)
+            # Publicar el comando de patrullaje
+            self.cmd_pub.publish(PATROL_ST + ':' + resultado)
+
+        except Exception as e:
+            print("Error al ejecutar el patrullaje: {0}".format(e))
 
     def click_event_mapa(self, event):
         """Evento para manejar clics en el mapa y mover el robot."""
@@ -284,8 +415,12 @@ class MapaApp:
                 print("Orientación seleccionada (en radianes): {0}".format(theta))
 
                 # Ejecutar el movimiento del robot en un hilo separado
-                self.ejecutar_movimiento(coord_x_inicio, coord_y_inicio, theta)
-
+                #self.ejecutar_movimiento(coord_x_inicio, coord_y_inicio, theta)
+                
+                # Enviar el comando al robot
+                command = MOVE_ST + ":{:.2f},{:.2f},{:.2f}".format(coord_x_inicio, coord_y_inicio, theta)
+                self.cmd_pub.publish(command)
+               
                 # Restablecer la primera selección
                 self.coordenada_inicio = None
 
@@ -306,6 +441,7 @@ class MapaApp:
 
             # Llamar al patrullaje en un hilo separado
             self.ejecutar_patrullaje(ruta_pgm)
+            
         else:
             print("No se encontró un área para el color: {0}".format(color_pixel_rgb))
 
@@ -314,13 +450,15 @@ class MapaApp:
 def main():
     # Inicializar el nodo de ROS
     rospy.init_node('seleccionar_pixel_y_mover')
-
+    
+    
     # Solicitar rutas del mapa y YAML al usuario
     ruta_mapa = "../nav_maps/" + MAP_NAME + ".pgm"
     ruta_yaml = "../nav_maps/" + MAP_NAME + ".yaml"
     ruta_mapa_coloreado = "../output_files/" + MAP_NAME + ".png"
     ruta_csv = "../output_files/" + MAP_NAME + ".csv"
- 
+    
+
     # Crear la ventana de Tkinter
     root = tk.Tk()
     app = MapaApp(root, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv)

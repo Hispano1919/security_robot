@@ -61,17 +61,21 @@ class MoveState(State):
         rate = rospy.Rate(0.1)
         
         print(userdata.input_data)
-        
         if userdata.input_data in rooms and actual_state == MOVE_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
-            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])    
         elif re.match(rooms, userdata.input_data) and actual_state == PATROL_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching launching patrol area node")
+            print("hola")
             self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_area.py', '--place', userdata.input_data])
         elif userdata.input_data == "route" and actual_state == PATROL_ST: 
             self.log_pub.publish("[INFO] MOVE STATE: Launching launching patrol route node")
             self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_patrol_route.py'])
-            
+        elif actual_state == MOVE_ST:
+            values = userdata.input_data.split(',')
+            x, y, w = map(float, values)
+            self.log_pub.publish("[INFO] MOVE STATE: Launching Move to point node")
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_point.py', '--x', str(x), '--y', str(y), '--w', str(w)])
         while not rospy.is_shutdown():
             rate.sleep()
 
@@ -126,7 +130,6 @@ class FollowPersonState(State):
         self.log_pub.publish("[INFO] FOLLOW STATE: Started state")
         rate = rospy.Rate(0.1)
 
-        print(actual_state)
         if actual_state == FOLLOW_ST:
             self.follow_person_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_follow_person.py', '--identify', "false"])
         elif actual_state == IDENTIFY_ST:

@@ -94,7 +94,7 @@ class CommandInterface:
         elif "busca" in command and ("qr" in command or "qrs" in command):
             self.console.print(":robot: ➡ :mag_right: [bold green]Buscando QRs...[/bold green]")
             self.cmd_pub.publish(QRFINDER_ST)
-        elif "quieto" in command or "quedate" in command:
+        elif "quieto" in command or "quedate" in command or "para" in command or "parate" in command:
             self.console.print(":robot: ➡ :stop_sign: [bold yellow]Me quedo quieto.[/bold yellow]")
             self.cmd_pub.publish(STOP_MOVE_CMD)
         elif ("deja" in command and "seguirme" in command) or ("no" in command and "me sigas" in command):

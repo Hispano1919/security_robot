@@ -33,9 +33,9 @@ def process_map(input_map_path, output_colored_map_path, yaml_path="mapa_aula.ya
     # Erosionar para aislar habitaciones
     kernel = np.ones((3, 3), np.uint8)
     eroded_image = binary_image.copy()
-    for _ in range(15):
+    for _ in range(39):
         eroded_image = cv2.erode(eroded_image, kernel)
-    for _ in range(15):
+    for _ in range(39):
         eroded_image = cv2.dilate(eroded_image, kernel)
 
     # Etiquetar las regiones conectadas

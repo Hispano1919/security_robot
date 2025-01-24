@@ -3,14 +3,27 @@
 
 import os
 import subprocess
+import webbrowser
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import messagebox, PhotoImage
 from PIL import Image, ImageTk
 import rospkg
 
 # Nombre del paquete ROS
 PACK_NAME = "security_robot"
 
+# Función para abrir un archivo PDF
+def open_pdf():
+    ruta_pdf = "../R2-G2_RobotGuardian.pdf"  # Cambia a la ruta de tu archivo PDF
+    if os.name == 'nt':  # Windows
+        os.startfile(ruta_pdf)
+    elif os.name == 'posix':  # MacOS y Linux
+        subprocess.call(('xdg-open', ruta_pdf))
+
+# Función para abrir un enlace web
+def open_link():
+    webbrowser.open("https://github.com/Hispano1919/security_robot")  # Cambia por el enlace deseado
+    
 def install_requirements():
     requirements_path = os.path.join(package_path, "requirements.txt")
     try:
@@ -34,9 +47,9 @@ def launch_simulation():
 
     try:
         subprocess.run(command, check=True)
-        messagebox.showinfo("Ejecución", "Simulación lanzada correctamente.")
+        messagebox.showinfo("Ejecución", "Aplicación lanzada correctamente.")
     except subprocess.CalledProcessError:
-        messagebox.showerror("Error", "No se pudo lanzar la simulación.")
+        messagebox.showerror("Error", "No se pudo lanzar la aplicación.")
 
 def get_world_names():
     world_dir = os.path.join(package_path, "worlds")
@@ -44,7 +57,106 @@ def get_world_names():
         os.makedirs(world_dir)  # Crear la carpeta si no existe
     world_files = [f for f in os.listdir(world_dir) if f.endswith(".world")]
     return [os.path.splitext(f)[0] for f in world_files]
+    
+def pop_up_window():
+    global ventana_emergente
+    if 'ventana_emergente' in globals() and ventana_emergente.winfo_exists():
+        ventana_emergente.lift()
+        return
+    def on_close():
+        ventana_emergente.destroy()
 
+    
+    ventana_emergente = ctk.CTkFrame(root, width=400, height=400, fg_color="#333333", corner_radius=15)
+    ventana_emergente.place(x=150, y=150)
+
+    imagen_fondo = ctk.CTkImage(light_image=Image.open(package_path + "/images/options.png"), size=(400, 400))
+    label_fondo = ctk.CTkLabel(ventana_emergente, image=imagen_fondo, text="")
+    label_fondo.place(relwidth=1, relheight=1)
+
+    close_image = ctk.CTkImage(
+        dark_image=Image.open(package_path + "/images/close.png"),
+        light_image=Image.open(package_path + "/images/close.png"),
+        size=(40, 30)
+    )
+    github_image = ctk.CTkImage(
+        dark_image=Image.open(package_path + "/images/github.png"),
+        light_image=Image.open(package_path + "/images/github.png"),
+        size=(374, 55)
+    )
+    manual_image = ctk.CTkImage(
+        dark_image=Image.open(package_path + "/images/manual.png"),
+        light_image=Image.open(package_path + "/images/manual.png"),
+        size=(374, 55)
+    )
+    install_image = ctk.CTkImage(
+        dark_image=Image.open(package_path + "/images/install.png"),
+        light_image=Image.open(package_path + "/images/install.png"),
+        size=(374, 55)
+    )
+    close_button = ctk.CTkButton(
+        ventana_emergente, 
+        text="",
+        image=close_image,
+        command=on_close,
+        fg_color="#c00000",  
+        hover_color="#660000",
+        width=40, 
+        height=30,
+        border_width=0, 
+        corner_radius=0, 
+        border_spacing=0
+    )
+    close_button.place(x=340, y=10)
+    
+    github_button = ctk.CTkButton(
+        ventana_emergente, 
+        text="",
+        image=github_image,
+        command=open_link,
+        fg_color="#262626",  
+        hover_color="#000000",
+        width=374, 
+        height=55,
+        border_width=0, 
+        corner_radius=0, 
+        border_spacing=0
+    )
+    github_button.place(x=13, y=70)
+    
+    manual_button = ctk.CTkButton(
+        ventana_emergente, 
+        text="",
+        image=manual_image,
+        command=open_pdf,
+        fg_color="#ffffff",  
+        hover_color="#c0c0c0",
+        width=374, 
+        height=55,
+        border_width=0, 
+        corner_radius=0, 
+        border_spacing=0
+    )
+    manual_button.place(x=13, y=170)
+    
+    install_button = ctk.CTkButton(
+        ventana_emergente, 
+        text="",
+        image=install_image,
+        command=install_requirements,
+        fg_color="#ffc000",  
+        hover_color="#9c7600",
+        width=374, 
+        height=55,
+        border_width=0, 
+        corner_radius=0, 
+        border_spacing=0
+    )
+    install_button.place(x=13, y=270)
+
+# Variables para el arrastre del frame
+x_offset = 0
+y_offset = 0
 
 # Obtener la ruta del paquete usando rospkg
 rospack = rospkg.RosPack()
@@ -57,10 +169,10 @@ window_width = 700
 window_height = 700
 root.geometry(f"{window_width}x{window_height}")
 root.configure(fg_color="#d9d9d9")  # Color de fondo gris
-
 # Cargar imagen de fondo
 bg_image_path = os.path.join(package_path, "images", "gui.png")
-
+icono = PhotoImage(file=package_path + "/images/icono.png")
+root.iconphoto(True, icono)
 try:
     bg_image = ctk.CTkImage(
         dark_image=Image.open(bg_image_path),  # Imagen para modo oscuro
@@ -75,7 +187,6 @@ except FileNotFoundError:
     messagebox.showerror("Error", f"No se encontró la imagen {bg_image_path}")
     root.destroy()
 
-
 # Cargar imagen para el botón de salida
 exit_image = ctk.CTkImage(
     dark_image=Image.open(package_path + "/images/exit.png"),  # Imagen para modo oscuro
@@ -87,6 +198,12 @@ start_image = ctk.CTkImage(
     dark_image=Image.open(package_path + "/images/start.png"),  # Imagen para modo oscuro
     light_image=Image.open(package_path + "/images/start.png"),  # Imagen para modo oscuro
     size=(181, 59)
+)
+
+options_btn_img = ctk.CTkImage(
+    dark_image=Image.open(package_path + "/images/options_button.png"),  # Imagen para modo oscuro
+    light_image=Image.open(package_path + "/images/options_button.png"),  # Imagen para modo oscuro
+    size=(37, 37)
 )
 # Obtener nombres de mundos desde la carpeta dentro del paquete ROS
 world_options = get_world_names()
@@ -209,7 +326,7 @@ start_button = ctk.CTkButton(
     text="",  # Sin texto para hacerlo más visualmente limpio
     image=start_image,  # Imagen del botón
     command=launch_simulation,
-    fg_color="#196b24",  # Fondo transparente
+    fg_color="#196b24",  
     
     hover_color="#0e3a14",
     width=181, 
@@ -225,7 +342,7 @@ exit_button = ctk.CTkButton(
     text="",  # Sin texto para hacerlo más visualmente limpio
     image=exit_image,  # Imagen del botón
     command=root.quit,
-    fg_color="#c00000",  # Fondo transparente
+    fg_color="#c00000",  
     
     hover_color="#660000",
     width=181, 
@@ -235,5 +352,21 @@ exit_button = ctk.CTkButton(
     border_spacing=0
 )
 exit_button.place(x=256, y=628)
+
+options_button = ctk.CTkButton(
+    root, 
+    text="",  # Sin texto para hacerlo más visualmente limpio
+    image=options_btn_img,  # Imagen del botón
+    command=pop_up_window,
+    fg_color="#bfbfbf",  
+    
+    hover_color="gray",
+    width=20, 
+    height=20,
+    border_width=0,  # Sin borde
+    corner_radius=1,  # Bordes redondeados
+    border_spacing=0
+)
+options_button.place(x=649, y=10)
 # Ejecutar la aplicación
 root.mainloop()

@@ -11,20 +11,7 @@
   <arg name="map_file" default="$(find security_robot)/nav_maps/$(arg world_name).yaml" />
   
   <!-- DETECCION DE PERSONAS-->
-  <!-- Nodo para 'mediapipe' -->
-  <node name="pDetector_Mediapipe" pkg="security_robot" type="RV_pDetector_mediapipe.py" output="screen" unless="$(arg movenet)"/>
 
-  <!-- Nodo para 'tensorflow' -->
-  <node name="pDetector_MoveNet" pkg="security_robot" type="RV_pDetector_MoveNet.py" output="screen" respawn="false" if="$(arg movenet)">
-    <param name="required" value="true"/>
-    <param name="tf_model" type="string" value="$(arg tf_model)" />
-  </node>
-
-  <!-- MOVER HUMANO EN SIMULACION -->
-  <node name="move_person" pkg="security_robot" type="APP_move_person.py" output="screen" respawn="false" if="$(arg sim)">
-    <param name="required" value="true"/>
-  </node>
-  
   <!-- BASH INTERFACE -->
   <node name="bash_interface" pkg="security_robot" type="UI_bash_interface.py" output="screen" respawn="false" if="$(arg bash_gui)"
     launch-prefix="gnome-terminal --title=$(arg bash_title) -- bash -c">
