@@ -33,6 +33,8 @@
 
 
 <!-- GETTING STARTED -->
+
+# R2-G2: Robot Guardián
 <div align="center">
 <img src="./images/icono.png" alt="Proyecto R2-G2" width="400" height="400">
 </div>
@@ -126,7 +128,7 @@ Desde una terminal situada en la carpeta src del paquete:
 
 Esto abrirá una interfaz gráfica con todas las opciones disponibles de la aplicación
 <div align="center">
-<img src="./images/launcher.png" alt="Interfaz de Lanzamiento" width="400" height="400">
+<img src="./images/github/launcher.png" alt="Interfaz de Lanzamiento" width="400" height="400">
 </div>
 
 + Mapa:
@@ -171,8 +173,14 @@ Activando rviz lanzará el entorno de visualización rviz.
 + Simulación:
 Por defecto activado, lanza la simulación en Gazebo. Se debe desactivar para utilizar el paquete sobre el Turtlebot real.
 
-### Interfaz por línea de comandos e interfaz de voz
 
+Además, la interfaz de lanzamiento incluye un menú de opciones:
+
+
+### Interfaz por línea de comandos e interfaz de voz
+<div align="center">
+<img src="./images/github/options_capture.png" alt="Interfaz por línea de comandos" width="400" height="400">
+</div>
 Ambas interfaces cumplen el mismo objetivo, permitir una interacción fluida con el robot, de manera que mediante comandos de lenguaje natural
 el robot es capaz de interpretar las órdenes y actuar en consecuencia. 
 
@@ -185,21 +193,22 @@ Para utilizar le control por voz, una vez el robot ha indicado que está a la es
 De igual manera, la interfaz por línea de comandos acepta las mismas órdenes, sin necesidad de incluir la palabra robot. 
 
 <div align="center">
-<img src="./images/bash.png" alt="Interfaz por línea de comandos" width="500" height="400">
+<img src="./images/github/bash.png" alt="Interfaz por línea de comandos" width="500" height="400">
 </div>
 
 ### Interfaz visual
 
 <div align="center">
-<img src="./images/interface.png" alt="Interfaz visual" width="500" height="400">
+<img src="./images/github/interface.png" alt="Interfaz visual" width="600" height="400">
 </div>
 
 La interfaz visual está compuesta por diferentes áreas:
 
-1. Botones: Los botones permiten una interacción rápida con el robot.
-2. Mapa segmentado: Al hacer click sobre el mapa segmentado por áreas, el robot realizará una patrullaje perimetral sobre el área seleccionada.
-3. Mapa en escala de grises: Mediante dos clicks (primero indica posición, segundo indica orientación), el robot se desplazará hacia el punto seleccionado.
-4. 
+1. Mapa en escala de grises: Mediante dos clicks (primero indica posición, segundo indica orientación), el robot se desplazará hacia el punto seleccionado.
+2. Cámara: POV del robot.
+3. Mapa segmentado: Al hacer click sobre el mapa segmentado por áreas, el robot realizará una patrullaje perimetral sobre el área seleccionada.
+4. Botones: Los botones permiten una interacción rápida con el robot.
+5. Línea de comandos. Interacción Similar a la interfaz por línea de comandos.
 
 ## Workspace
 
