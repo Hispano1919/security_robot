@@ -1886,10 +1886,10 @@
       <static>1</static>
     </model>
     <state world_name='default'>
-      <sim_time>80 73000000</sim_time>
-      <real_time>81 418129564</real_time>
-      <wall_time>1737647976 946751310</wall_time>
-      <iterations>80073</iterations>
+      <sim_time>299 284000000</sim_time>
+      <real_time>230 252433524</real_time>
+      <wall_time>1737749891 45264716</wall_time>
+      <iterations>219211</iterations>
       <model name='casa1'>
         <pose>-6.29806 -2.75628 0 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -1982,16 +1982,242 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
+      <model name='person_walking'>
+        <pose>-2.03519 -0.855267 0 -1e-06 -0 0.00025</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>-2.03519 -0.855267 0 -1e-06 -0 0.00025</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>1.65358 -3.57576 2.65573 0.520008 1.18037 -3.03527</acceleration>
+          <wrench>132.286 -286.061 212.458 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='qr_cocina'>
+        <pose>-1.31979 -2.86101 0.378185 -1.5708 0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='qr_cocina_link'>
+          <pose>-1.31979 -2.86001 0.378185 1.5708 1.57079 3.14159</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='qr_habitacion'>
+        <pose>-6.74216 -2.824 0.259115 -1.5708 0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='qr_habitacion_link'>
+          <pose>-6.74216 -2.823 0.259115 1.5708 1.57079 3.14159</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='qr_salon'>
+        <pose>-0.079393 1.59272 0.351459 -1.5708 3e-06 -3e-06</pose>
+        <scale>1 1 1</scale>
+        <link name='qr_salon_link'>
+          <pose>-0.079393 1.59372 0.351459 1.5708 1.57079 3.14159</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='qr_wc'>
+        <pose>-6.74216 -0.724 0.220731 -1.5708 0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='qr_wc_link'>
+          <pose>-6.74216 -0.723 0.220731 1.5708 1.57079 3.14159</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
       <light name='sun'>
         <pose>0 0 10 0 -0 0</pose>
       </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-5.37288 -4.47472 20.4876 1e-06 1.5218 1.57621</pose>
+        <pose>-4.77157 -8.00975 10.2537 0 0.913801 1.61621</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
+    <model name='person_walking'>
+      <link name='link'>
+        <inertial>
+          <pose>0 0 0.95 0 -0 0</pose>
+          <mass>80</mass>
+          <inertia>
+            <ixx>27.82</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>24.88</iyy>
+            <iyz>0</iyz>
+            <izz>4.57</izz>
+          </inertia>
+        </inertial>
+        <collision name='bottom'>
+          <pose>0 0 0.01 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.35 0.75 0.02</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <collision name='person'>
+          <pose>0 0 -0.02 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://person_walking/meshes/walking.dae</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <pose>0 0 -0.02 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://person_walking/meshes/walking.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+        <plugin name='model_push' filename='libgazebo_ros_model_push.so'>
+          <ros>
+            <namespace>/person_walking</namespace>
+            <remapping>cmd_vel:=cmd_vel</remapping>
+          </ros>
+        </plugin>
+      </link>
+      <pose>-2.03522 -0.855267 0 0 -0 0</pose>
+    </model>
+    <model name='qr_habitacion'>
+      <static>1</static>
+      <link name='qr_habitacion_link'>
+        <pose>0 0 0.001 0 -0 1.5708</pose>
+        <visual name='visual_qr_habitacion'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://qr_habitacion/materials/scripts</uri>
+              <uri>model://qr_habitacion/materials/textures</uri>
+              <name>qr_habitacion/qr_habitacion</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-7.28837 -3.18666 0 0 -0 0</pose>
+    </model>
+    <model name='qr_cocina'>
+      <static>1</static>
+      <link name='qr_cocina_link'>
+        <pose>0 0 0.001 0 -0 1.5708</pose>
+        <visual name='visual_qr_cocina'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://qr_cocina/materials/scripts</uri>
+              <uri>model://qr_cocina/materials/textures</uri>
+              <name>qr_cocina/qr_cocina</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-1.54665 -3.25711 0 0 -0 0</pose>
+    </model>
+    <model name='qr_salon'>
+      <static>1</static>
+      <link name='qr_salon_link'>
+        <pose>0 0 0.001 0 -0 1.5708</pose>
+        <visual name='visual_qr_salon'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://qr_salon/materials/scripts</uri>
+              <uri>model://qr_salon/materials/textures</uri>
+              <name>qr_salon/qr_salon</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-0.054848 0.975745 0 0 -0 0</pose>
+    </model>
+    <model name='qr_wc'>
+      <static>1</static>
+      <link name='qr_wc_link'>
+        <pose>0 0 0.001 0 -0 1.5708</pose>
+        <visual name='visual_qr_wc'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <box>
+              <size>0.2 0.2 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://qr_wc/materials/scripts</uri>
+              <uri>model://qr_wc/materials/textures</uri>
+              <name>qr_wc/qr_wc</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-7.15929 -0.914235 0 0 -0 0</pose>
+    </model>
   </world>
 </sdf>

@@ -90,6 +90,7 @@ class QRFinderNode():
                 self.move_to_random_point()
             rospy.sleep(1)
             
+        self.stop()
         self.stop_node = True
         
     def start(self):
@@ -106,14 +107,13 @@ class QRFinderNode():
         # Wait to cancel current goal 
         if self.client.get_state() == actionlib.GoalStatus.PENDING or self.client.get_state() == actionlib.GoalStatus.ACTIVE:
             self.set_current_position_as_goal()
-            while not self.goal_cancel:
-                rospy.sleep(0.1)
                 
-        self.is_active = False
-    
+        
+        self.stop_node = True
+        
     def cmd_callback(self, msg):
         if msg.data == STOP_MOVE_CMD:
-            self.stop()
+            self.is_active = False
             
     def publish_message(self, event):
         # Publish the message
@@ -170,11 +170,6 @@ class QRFinderNode():
         self.client.send_goal(goal)
         self.client.wait_for_result()
 
-        if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
-            self.goal_cancel = False
-        else:
-            self.goal_cancel = False
-
     def set_current_position_as_goal(self):
         """Establece la posición actual del robot como un nuevo objetivo."""
         rospy.loginfo("Obteniendo la posición actual del robot...")
@@ -201,7 +196,7 @@ class QRFinderNode():
         self.client.send_goal(goal)
         # Opcional: Esperar a que el cliente confirme que el objetivo ha sido alcanzado
         self.client.wait_for_result()
-        self.goal_cancel = True
+        self.goal_cancel = False
 
     def image_callback(self, msg):
         if not self.is_active:

@@ -63,7 +63,10 @@ class MoveState(State):
         print(userdata.input_data)
         if userdata.input_data in rooms and actual_state == MOVE_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching QR waypoint node")
-            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data])    
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_qrWaypoint.py', '--place', userdata.input_data]) 
+        elif  userdata.input_data in ["estacion" or "base"] and actual_state == MOVE_ST: 
+            self.log_pub.publish("[INFO] MOVE STATE: Launching Move to point node")
+            self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_point.py', '--x', str(0), '--y', str(0), '--w', str(1)])
         elif re.match(rooms, userdata.input_data) and actual_state == PATROL_ST:
             self.log_pub.publish("[INFO] MOVE STATE: Launching launching patrol area node")
             print("hola")

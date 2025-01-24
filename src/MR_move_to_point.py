@@ -37,9 +37,9 @@ class MoveToPointNode():
         parser.add_argument('--w', type=float, required=True, help="Orientación del destino (en radianes)")
         args = parser.parse_args()
 
-        self.target_x = args.x
-        self.target_y = args.y
-        self.target_orientation = args.w
+        self.target_x = float(args.x)
+        self.target_y = float(args.y)
+        self.target_orientation = float(args.w)
         
         self.log_msg = "[INFO] MOVE NODE: Waiting..."
         self.execute()

@@ -176,11 +176,12 @@ Por defecto activado, lanza la simulación en Gazebo. Se debe desactivar para ut
 
 Además, la interfaz de lanzamiento incluye un menú de opciones:
 
-
-### Interfaz por línea de comandos e interfaz de voz
 <div align="center">
 <img src="./images/github/options_capture.png" alt="Interfaz por línea de comandos" width="400" height="400">
 </div>
+
+### Interfaz por línea de comandos e interfaz de voz
+
 Ambas interfaces cumplen el mismo objetivo, permitir una interacción fluida con el robot, de manera que mediante comandos de lenguaje natural
 el robot es capaz de interpretar las órdenes y actuar en consecuencia. 
 
