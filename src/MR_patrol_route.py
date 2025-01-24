@@ -3,7 +3,7 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import String
 
 import numpy as np
@@ -15,7 +15,7 @@ import rospkg
 
 import csv
 
-from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints 
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints, TOPIC_AMCLPOS
 from APP_config import STOP_MOVE_CMD, STOP_MOVE_NODE, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME, MAP_NAME
 
 class PatrolRouteNode():
@@ -27,8 +27,10 @@ class PatrolRouteNode():
         self.cmd = None
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10) 
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10) 
+        self.pose_sub = rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String, self.cmd_callback)
         self.place = None
-        
+        self.current_pose = None
         self.start()
         
     def start(self):
@@ -49,6 +51,10 @@ class PatrolRouteNode():
         self.log_pub.publish("[INFO] PATROL NODE: Stopped patrol route node")
         self.cmd_sub.unregister()  
         self.is_active = False
+        
+    def update_pose(self, msg):
+        # Actualizar la posición y orientación del robot
+        self.current_pose = msg.pose.pose
         
     def cmd_callback(self, msg):
             
@@ -126,6 +132,7 @@ class PatrolRouteNode():
             rospy.logwarn("No se ha recibido la posición actual del robot.")
             return
 
+        self.log_pub.publish("[INFO] PATROL NODE: Setting current position as goal to stop cleanly")
         # Crear un nuevo objetivo basado en la posición actual
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"  # El marco debe ser consistente con tu sistema

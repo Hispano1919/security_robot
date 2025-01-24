@@ -76,6 +76,7 @@ class MoveState(State):
             x, y, w = map(float, values)
             self.log_pub.publish("[INFO] MOVE STATE: Launching Move to point node")
             self.move_node_process = subprocess.Popen(['rosrun', PACK_NAME, 'MR_move_to_point.py', '--x', str(x), '--y', str(y), '--w', str(w)])
+            
         while not rospy.is_shutdown():
             rate.sleep()
 
@@ -137,7 +138,7 @@ class FollowPersonState(State):
 
         while not rospy.is_shutdown() and self.followPerson:
             rate.sleep()
-
+            
             if self.cmd is not None:
                 if self.cmd == STOP_FOLLOW_NODE:
                     break

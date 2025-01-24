@@ -3,7 +3,7 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import String
 import cv2
 import numpy as np
@@ -17,8 +17,8 @@ import rospkg
 
 import argparse
 
-from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, def_waypoints
-from APP_config import STOP_MOVE_NODE, STOP_MOVE_CMD, START_MOVE_CMD, NODE_SUCCEED, NODE_FAILURE, PACK_NAME, MAP_NAME
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, TOPIC_AMCLPOS
+from APP_config import STOP_MOVE_NODE, STOP_MOVE_CMD, PACK_NAME, MAP_NAME
 
 global area_name
 
@@ -30,8 +30,11 @@ class PatrolAreaNode():
         self.cmd = None
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10) 
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10) 
+        self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String, self.cmd_callback)
+        self.pose_sub = rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
         self.place = None
         self.stop_node = False
+        self.current_pose = None
 
         # Usar argparse para recoger el argumento --place
         parser = argparse.ArgumentParser(description="Mover al robot a un lugar específico.")
@@ -46,7 +49,7 @@ class PatrolAreaNode():
         yaml_file = folder_path + "/" + MAP_NAME + ".yaml"
         area_file = package_path + "/output_files/restricted_maps/" + MAP_NAME + "_" + self.place + ".pgm"
         
-        self.execute(area_file, yaml_file, 50)
+        self.execute(area_file, yaml_file, 20)
         
     def stop(self):
         if self.client.get_state() == actionlib.GoalStatus.PENDING or self.client.get_state() == actionlib.GoalStatus.ACTIVE:
@@ -54,7 +57,7 @@ class PatrolAreaNode():
             while not self.goal_cancel:
                 rospy.sleep(0.1)
                 
-        self.log_pub.publish("[INFO] PATROL NODE: Stopped patrol route node")
+        self.log_pub.publish("[INFO] PATROL NODE: Stopped patrol area node")
         self.cmd_sub.unregister()  
         self.is_active = False
         
@@ -80,14 +83,19 @@ class PatrolAreaNode():
             resultado = self.mover_a_goal(x, y)
             if resultado:
                 rospy.loginfo(f"Goal alcanzado en ({x}, {y})")
+                self.log_pub.publish("[INFO] PATROL NODE: Point reached")
             else:
                 rospy.loginfo(f"Error alcanzando el goal en ({x}, {y})")
+                self.log_pub.publish("[INFO] PATROL NODE: Cannot reach point")
             if self.is_active == False:
                 break
         
         self.stop()      
         self.stop_node = True
         
+    def update_pose(self, msg):
+        # Actualizar la posición y orientación del robot
+        self.current_pose = msg.pose.pose
 
     def cmd_callback(self, msg):
             
@@ -132,7 +140,7 @@ class PatrolAreaNode():
             for x in range(0, ancho, espaciado):
                 if mapa_binario[y, x] == 255 and mapa_inaccesible[y, x] == 0:  # Si es navegable y no está cerca de un píxel negro
                     puntos.append((x, y))
-        
+        self.log_pub.publish("[INFO] PATROL NODE: Number of points: " + str(len(puntos)))
         return puntos
 
     def seleccionar_puntos_aleatorios(self, puntos, cantidad=5):
@@ -181,7 +189,7 @@ class PatrolAreaNode():
         if self.current_pose is None:
             rospy.logwarn("No se ha recibido la posición actual del robot.")
             return
-
+        self.log_pub.publish("[INFO] PATROL NODE: Setting current position as goal to stop cleanly")
         # Crear un nuevo objetivo basado en la posición actual
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id = "map"  # El marco debe ser consistente con tu sistema

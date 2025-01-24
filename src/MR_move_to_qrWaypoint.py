@@ -3,7 +3,7 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import String
 import numpy as np
 import rospkg
@@ -14,8 +14,8 @@ import re
 
 import argparse
 
-from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, MAP_NAME, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, STOP_MOVE_NODE, PACK_NAME
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, TOPIC_AMCLPOS, MAP_NAME, def_waypoints 
+from APP_config import STOP_MOVE_CMD, STOP_MOVE_NODE, PACK_NAME
 
 class QRMoveNode():
     def __init__(self):
@@ -29,7 +29,9 @@ class QRMoveNode():
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10)
         self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String , self.cmd_callback)
+        self.pose_sub = rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
         
+        self.current_pose = None
         # Usar argparse para recoger el argumento --place
         parser = argparse.ArgumentParser(description="Mover al robot a un lugar específico.")
         parser.add_argument('--place', type=str, required=True, help="El nombre del lugar al que moverse")
@@ -93,7 +95,11 @@ class QRMoveNode():
         self.cmd_sub.unregister()  
         self.timer.shutdown()
         self.is_active = False
-  
+        
+    def update_pose(self, msg):
+        # Actualizar la posición y orientación del robot
+        self.current_pose = msg.pose.pose
+        
     def update_waypoints_from_file(self, filename, waypoints):
         """
         Funcion para leer el fichero de waypoints y actualizar la lista

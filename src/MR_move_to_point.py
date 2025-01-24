@@ -3,7 +3,7 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import String
 import numpy as np
 import rospkg
@@ -14,8 +14,8 @@ import re
 
 import argparse
 
-from APP_config import TOPIC_COMMAND, TOPIC_LOGS, WAYPOINT_PATH, MAP_NAME, def_waypoints 
-from APP_config import STOP_MOVE_CMD, START_MOVE_CMD, STOP_MOVE_NODE, PACK_NAME
+from APP_config import TOPIC_COMMAND, TOPIC_LOGS, TOPIC_AMCLPOS 
+from APP_config import STOP_MOVE_CMD, STOP_MOVE_NODE
 
 class MoveToPointNode():
     def __init__(self):
@@ -27,7 +27,9 @@ class MoveToPointNode():
         self.log_pub = rospy.Publisher(TOPIC_LOGS, String, queue_size=10)
         self.cmd_pub = rospy.Publisher(TOPIC_COMMAND, String, queue_size=10)
         self.cmd_sub = rospy.Subscriber(TOPIC_COMMAND, String, self.cmd_callback)
-
+        self.pose_sub = rospy.Subscriber(TOPIC_AMCLPOS, PoseWithCovarianceStamped, self.update_pose)
+        
+        self.current_pose = None
         # Usar argparse para recoger los argumentos x, y, orientacion
         parser = argparse.ArgumentParser(description="Mover al robot a una coordenada específica.")
         parser.add_argument('--x', type=float, required=True, help="Coordenada X del destino")
@@ -57,7 +59,11 @@ class MoveToPointNode():
         self.log_pub.publish("[INFO] MOVE NODE: Stopped patrol route node")
         self.cmd_sub.unregister()  
         self.is_active = False
-
+        
+    def update_pose(self, msg):
+        # Actualizar la posición y orientación del robot
+        self.current_pose = msg.pose.pose
+        
     def publish_message(self, event):
         self.log_pub.publish(self.log_msg)
 
@@ -82,15 +88,8 @@ class MoveToPointNode():
 
             self.client.send_goal(goal_pose)
             self.client.wait_for_result()
-
-            if self.client.get_state() == actionlib.GoalStatus.SUCCEEDED:
-                return 'succeeded'
-            else:        
-                return 'aborted'
-        else:
-            return 'aborted' 
         
-def set_current_position_as_goal(self):
+    def set_current_position_as_goal(self):
         """Establece la posición actual del robot como un nuevo objetivo."""
         rospy.loginfo("Obteniendo la posición actual del robot...")
 

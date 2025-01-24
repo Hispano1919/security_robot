@@ -58,7 +58,7 @@ QRFINDER_ST = "qrfinder_state"
 
 # PATH
 WAYPOINT_PATH = "/home/asahel/ROS_WS/src/security_robot/output_files/default.qrlog"
-MAP_NAME = "casa4"
+MAP_NAME = "casa3"
 
 
 

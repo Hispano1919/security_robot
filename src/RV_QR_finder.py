@@ -151,10 +151,6 @@ class QRFinderNode():
         # Actualizar la posición y orientación del robot
         self.current_pose = msg.pose.pose
 
-    def update_pose(self, msg):
-        # Actualizar la posición y orientación del robot
-        self.current_pose = msg.pose.pose
-
     def move_to_random_point(self):
         """Genera y envía un objetivo aleatorio al stack de navegación."""
         goal = MoveBaseGoal()

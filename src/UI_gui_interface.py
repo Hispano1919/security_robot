@@ -19,8 +19,9 @@ import subprocess  # Para llamar al script
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image  # Asegurarse de que la clase Image de ROS se importa correctamente
 from std_msgs.msg import String
+import rospkg
 
-from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, MAP_NAME, TOPIC_RGBCAM
+from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, MAP_NAME, TOPIC_RGBCAM, PACK_NAME
 from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD, PATROL_ST, MOVE_ST, STOP_MOVE_CMD
 
 class MapaApp:
@@ -190,7 +191,7 @@ class MapaApp:
         self.canvas_imagen.grid(row=0, column=0, sticky="nsew")  # Hacer que el Canvas ocupe todo el Frame
 
         # Cargar la imagen
-        self.imagen_original = PILImage.open("../images/robot.png")  # Reemplaza con la ruta de tu imagen
+        self.imagen_original = PILImage.open(package_path+"/images/robot.png")  # Reemplaza con la ruta de tu imagen
 
         # Redibujar la imagen para que ocupe todo el Frame dinámicamente
         def actualizar_imagen(event):
@@ -446,23 +447,25 @@ class MapaApp:
         else:
             print("No se encontró un área para el color: {0}".format(color_pixel_rgb))
 
-
+rospack = rospkg.RosPack()
+package_path = rospack.get_path(PACK_NAME)
 # Función principal para ejecutar la interfaz
 def main():
     # Inicializar el nodo de ROS
     rospy.init_node('seleccionar_pixel_y_mover')
     
-    
+    # Obtener la ruta del paquete usando rospkg
+
     # Solicitar rutas del mapa y YAML al usuario
-    ruta_mapa = "../nav_maps/" + MAP_NAME + ".pgm"
-    ruta_yaml = "../nav_maps/" + MAP_NAME + ".yaml"
-    ruta_mapa_coloreado = "../output_files/" + MAP_NAME + ".png"
-    ruta_csv = "../output_files/" + MAP_NAME + ".csv"
+    ruta_mapa = package_path + "/nav_maps/" + MAP_NAME + ".pgm"
+    ruta_yaml = package_path + "/nav_maps/" + MAP_NAME + ".yaml"
+    ruta_mapa_coloreado = package_path + "/output_files/" + MAP_NAME + ".png"
+    ruta_csv = package_path + "/output_files/" + MAP_NAME + ".csv"
     
 
     # Crear la ventana de Tkinter
     root = tk.Tk()
-    icono = tk.PhotoImage("../images/icono.png")
+    icono = tk.PhotoImage(package_path + "/images/icono.png")
     root.iconphoto(True, icono)
     app = MapaApp(root, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv)
     root.mainloop()

@@ -10,7 +10,10 @@
   <arg name="map_file" default="$(find security_robot)/nav_maps/$(arg world_name).yaml" />
   <arg name="rviz" default="false" />
   
-  
+  <!-- USER INTERFACE -->
+  <node name="visual_interface" pkg="security_robot" type="UI_gui_interface.py" output="screen" respawn="false">
+    <param name="required" value="true"/>
+  </node>
 
   <!-- BASH INTERFACE -->
   <node name="bash_interface" pkg="security_robot" type="UI_bash_interface.py" output="screen" respawn="false" if="$(arg bash_gui)"
@@ -26,12 +29,6 @@
   <node name="pDetector_MoveNet" pkg="security_robot" type="RV_pDetector_MoveNet.py" output="screen" respawn="false" if="$(arg movenet)">
     <param name="required" value="true"/>
     <param name="tf_model" type="string" value="$(arg tf_model)" />
-  </node>
-
-   <!-- RECONOCIMIENTO DE VOZ -->
-  <node name="voice_control" pkg="security_robot" type="UI_voice_control.py" output="screen" respawn="false">
-    <param name="required" value="true"/>
-    <param name="voice_model" value="$(arg voice_model)" />
   </node>
 
   <!-- MOVER HUMANO EN SIMULACION -->
