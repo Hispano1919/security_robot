@@ -33,12 +33,15 @@
 
 
 <!-- GETTING STARTED -->
+<div align="center">
+<img src="./images/icono.png" alt="Proyecto R2-G2" width="400" height="400">
+</div>
 
 ## Introducción
-![Proyecto R2-G2](./images/icono.png)
+
 Este repositorio contiene el paquete de ROS security_robot para la asignatura Robots Móviles. 
 
-Este paquete implementa el proyecto R2-G2, un robot guardian inspirado en el mítico R2-D2 y que implementa las siguientes funcionalidades:
+Security_robot implementa el proyecto R2-G2, un robot guardián inspirado en el mítico R2-D2 y que contiene las siguientes funcionalidades:
 
 - [X] Navegación autónoma 
 - [X] Exploración y mapeado autónomo 
@@ -81,7 +84,7 @@ Instalar el simulador de Turtlebot 2
 3. Workspace de catkin previamente creado: [http://wiki.ros.org/catkin/Tutorials/create_a_workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
 4. Gazebo: [https://classic.gazebosim.org/tutorials?tut=install_ubuntu](https://classic.gazebosim.org/tutorials?tut=install_ubuntu) 
 5. Mediapipe: [https://pypi.org/project/mediapipe/](https://pypi.org/project/mediapipe/)
-
+6. Paquete de ROS explore_lite: [http://wiki.ros.org/explore_lite](http://wiki.ros.org/explore_lite) 
    
 ### Instalación
 
@@ -114,6 +117,7 @@ Con estos pasos el paquete ya debería estar correctamente compilado y listo par
 <!-- USAGE EXAMPLES -->
 ## Uso
 
+### Lanzamiento
 Para usar este paquete se ha implementado una interfaz visual que permite lanzar la aplicación de manera cómoda y sencilla en simulación:
 Desde una terminal situada en la carpeta src del paquete:
 ```sh
@@ -122,12 +126,13 @@ Desde una terminal situada en la carpeta src del paquete:
 
 Esto abrirá una interfaz gráfica con todas las opciones disponibles de la aplicación
 <div align="center">
-<img src="./images/gui_capture.png" alt="Interfaz de Lanzamiento" width="400" height="400">
+<img src="./images/launcher.png" alt="Interfaz de Lanzamiento" width="400" height="400">
 </div>
-+ Mapa
+
++ Mapa:
    Permite escoger el mapa que se desea utilizar en la aplicación. Se leen cargan automáticamente los mapas situados en la carpeta worlds del paquete.
 
-+ Modo
++ Modo:
    
    1. Minimal:
       - Se lanzan los nodos:
@@ -157,14 +162,44 @@ Esto abrirá una interfaz gráfica con todas las opciones disponibles de la apli
    5. Segmentation:
       Se lanza un módulo independiente para segmentar por áreas el mapa seleccionado.
 
-+ MovePerson
++ MovePerson:
 Activando move_person se lanzará el nodo de movimiento de persona en un entorno simulado de gazebo.
          
-+ RVIZ 
++ RVIZ: 
 Activando rviz lanzará el entorno de visualización rviz.
 
-+ Simulación
++ Simulación:
 Por defecto activado, lanza la simulación en Gazebo. Se debe desactivar para utilizar el paquete sobre el Turtlebot real.
+
+### Interfaz por línea de comandos e interfaz de voz
+
+Ambas interfaces cumplen el mismo objetivo, permitir una interacción fluida con el robot, de manera que mediante comandos de lenguaje natural
+el robot es capaz de interpretar las órdenes y actuar en consecuencia. 
+
+Para utilizar le control por voz, una vez el robot ha indicado que está a la escucha ("Hola, te escucho"), mediante frases cortas se puede ordenar al robot (siempre deben ir precedidas de la palabra robot). Ejemplos:
+
+ 1. robot, sígueme (el robot comenzará a seguir a la persona cuando la detecte) 
+ 2. robot, patrulla 
+ 3. robot, ve a la cocina 
+
+De igual manera, la interfaz por línea de comandos acepta las mismas órdenes, sin necesidad de incluir la palabra robot. 
+
+<div align="center">
+<img src="./images/bash.png" alt="Interfaz por línea de comandos" width="500" height="400">
+</div>
+
+### Interfaz visual
+
+<div align="center">
+<img src="./images/interface.png" alt="Interfaz visual" width="500" height="400">
+</div>
+
+La interfaz visual está compuesta por diferentes áreas:
+
+1. Botones: Los botones permiten una interacción rápida con el robot.
+2. Mapa segmentado: Al hacer click sobre el mapa segmentado por áreas, el robot realizará una patrullaje perimetral sobre el área seleccionada.
+3. Mapa en escala de grises: Mediante dos clicks (primero indica posición, segundo indica orientación), el robot se desplazará hacia el punto seleccionado.
+4. 
 
 ## Workspace
 
@@ -256,21 +291,27 @@ El workspace del paquete está distribuido de la siguiente manera:
     └── 🌐 security_world.world
 
 ```
+1. La carpeta /config contiene las configuraciones necesarias para lanzar la exploración mediante el paquete explore_lite.
 
-1. En la carpeta /launch se encuentran todos los ficheros .launch implementados. Estos .launch son lanzados de manera automática por el fichero run.sh pero pueden ser lanzados independientemente mediante el paquete de ROS, roslaunch:
+2. La carpeta /images contiene las imágenes usadas por las interfaces gráficas.
+
+3. En la carpeta /launch se encuentran todos los ficheros .launch implementados. Estos .launch son lanzados de manera automática por el fichero run.sh pero pueden ser lanzados independientemente mediante el paquete de ROS, roslaunch:
 ```sh
    roslaunch security_robot <launch file>
 ```
 
-2. La carpeta /nav_maps contiene los mapas usados por el stack de navegación. Aquí deben situarse los mapas construidos.
+4. La carpeta /nav_maps contiene los mapas usados por el stack de navegación. Aquí deben situarse los mapas construidos.
 
-3. /obj_models contiene los modelos de Gazebo usados en el mampa por defecto.
+5. /obj_models contiene los modelos de Gazebo usados en el mampa por defecto.
 
-4. La carpeta /src contiene los códigos fuente que lanzan los distintos nodos y funcionalidades.
+6. /output_files contiene todos los ficheros procedentes de la ejecución de la aplicación. Tanto para la segmentación de los mapas como para el guardado de los waypoints detectados con QRs.
 
-5. En /trained_models se incluyen los modelos y dependencias necesarias para poder usar el reconocmiento de voz y diferentes métodos de detección de personas (no necesarios si se está usando Mediapipe por defecto)
+7. La carpeta /src contiene los códigos fuente que lanzan los distintos nodos y funcionalidades.
 
-6. En /worlds contiene los ficheros .world que utiliza Gazebo para la simulación. Por defecto se lanza la simulación casa3.world.
+8. En /trained_models se incluyen los modelos y dependencias necesarias para poder usar el reconocmiento de voz y diferentes métodos de detección de personas (no necesarios si se está usando Mediapipe por defecto)
+
+9. En /worlds contiene los ficheros .world que utiliza Gazebo para la simulación. Por defecto se lanza la simulación casa3.world.
+
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

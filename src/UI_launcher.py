@@ -164,7 +164,7 @@ package_path = rospack.get_path(PACK_NAME)
 
 # Crear la ventana principal
 root = ctk.CTk()
-root.title("R2-G2")
+root.title("R2-G2 Launcher")
 window_width = 700
 window_height = 700
 root.geometry(f"{window_width}x{window_height}")

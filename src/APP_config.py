@@ -72,7 +72,7 @@ MAX_VSPEED = 0.5
 MAX_WSPEED = 0.5
 
 states = [IDLE_ST, FOLLOW_ST, MOVE_ST, SHUTDOWN_ST, PATROL_ST, QRFINDER_ST, IDENTIFY_ST]
-rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion|area(_\d+)?)\b$"
+rooms = r"^(.*)\b(cocina|wc|salon|habitacion|estacion|base|area(_\d+)?)\b$"
 
 # Definir los waypoints a los que el robot debe moverse
 def_waypoints = [

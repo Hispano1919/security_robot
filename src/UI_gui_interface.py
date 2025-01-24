@@ -21,7 +21,7 @@ from sensor_msgs.msg import Image  # Asegurarse de que la clase Image de ROS se 
 from std_msgs.msg import String
 
 from APP_config import rooms, TOPIC_COMMAND, TOPIC_LOGS, FOLLOW_ST, SHUTDOWN_ST, MOVE_ST, PATROL_ST, MAP_NAME, TOPIC_RGBCAM
-from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD, PATROL_ST, MOVE_ST
+from APP_config import STOP_FOLLOW_CMD, START_DETECTION_CMD, STOP_DETECTION_CMD, START_VOICE_CMD, STOP_VOICE_CMD, PATROL_ST, MOVE_ST, STOP_MOVE_CMD
 
 class MapaApp:
     def __init__(self, master, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv):
@@ -31,6 +31,8 @@ class MapaApp:
         self.ruta_mapa_coloreado = ruta_mapa_coloreado
         self.ruta_csv = ruta_csv
 
+        
+        self.master.title("R2-G2 GUI")
         # Inicializar CvBridge para convertir mensajes ROS a imágenes OpenCV
         self.bridge = CvBridge()
         ##################################################################################
@@ -62,7 +64,7 @@ class MapaApp:
         self.frame_camera_center.grid_columnconfigure(0, weight=1)  # Expande la columna del canvas
 
         # Suscribirse al topic de la cámara
-        self.image_sub = rospy.Subscriber("/camera/rgb/image_raw", Image, self.callback_camera)
+        self.image_sub = rospy.Subscriber(TOPIC_RGBCAM, Image, self.callback_camera)
 
         # Cargar mapas y parámetros
         self.mapa = cv2.imread(ruta_mapa)
@@ -263,14 +265,13 @@ class MapaApp:
             self.master.quit()
 
     def funcion_boton1(self):
-        print("Botón 1 presionado.")
-
+        self.cmd_pub.publish(STOP_MOVE_CMD)
+        
     def funcion_boton2(self):
-        print("Botón 2 presionado.")
-
+        self.cmd_pub.publish(MOVE_ST + ':base')
+        
     def funcion_boton3(self):
-        self.cmd_pub.publish(PATROL_ST + ':' + "route")
-        print("Botón 3 presionado.")
+        self.cmd_pub.publish(PATROL_ST + ':route')
 
     def callback_camera(self, msg):
         """Recibir imágenes de la cámara y actualizar la interfaz."""
@@ -461,6 +462,8 @@ def main():
 
     # Crear la ventana de Tkinter
     root = tk.Tk()
+    icono = tk.PhotoImage("../images/icono.png")
+    root.iconphoto(True, icono)
     app = MapaApp(root, ruta_mapa, ruta_yaml, ruta_mapa_coloreado, ruta_csv)
     root.mainloop()
 
