@@ -84,9 +84,9 @@ Instalar el simulador de Turtlebot 2
   ```
 
 3. Workspace de catkin previamente creado: [http://wiki.ros.org/catkin/Tutorials/create_a_workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
-4. Gazebo: [https://classic.gazebosim.org/tutorials?tut=install_ubuntu](https://classic.gazebosim.org/tutorials?tut=install_ubuntu) 
-5. Mediapipe: [https://pypi.org/project/mediapipe/](https://pypi.org/project/mediapipe/)
-6. Paquete de ROS explore_lite: [http://wiki.ros.org/explore_lite](http://wiki.ros.org/explore_lite) 
+4. **Gazebo:** [https://classic.gazebosim.org/tutorials?tut=install_ubuntu](https://classic.gazebosim.org/tutorials?tut=install_ubuntu) 
+5. **Mediapipe:** [https://pypi.org/project/mediapipe/](https://pypi.org/project/mediapipe/)
+6. Paquete de ROS **explore_lite**: [http://wiki.ros.org/explore_lite](http://wiki.ros.org/explore_lite) 
    
 ### Instalación
 
@@ -131,17 +131,17 @@ Esto abrirá una interfaz gráfica con todas las opciones disponibles de la apli
 <img src="./images/github/launcher.png" alt="Interfaz de Lanzamiento" width="400" height="400">
 </div>
 
-+ Mapa:
++ **Mapa:**
    Permite escoger el mapa que se desea utilizar en la aplicación. Se leen cargan automáticamente los mapas situados en la carpeta worlds del paquete.
 
-+ Modo:
++ **Modo:**
    
-   1. Minimal:
+   1. **Minimal:**
       - Se lanzan los nodos:
          - Interfaz por línea de comandos
          - Nodo principal (APP_main)
 
-   2. Light:
+   2. **Light:**
 
       - Se lanzan los nodos:
          - Deteccion de personas
@@ -149,7 +149,7 @@ Esto abrirá una interfaz gráfica con todas las opciones disponibles de la apli
          - Interfaz visual
          - Nodo principal (APP_main)
 
-   3. Heavy:
+   3. **Heavy:**
       - Se lanzan todos los nodos:
          - Deteccion de personas
          - Control de voz
@@ -158,19 +158,19 @@ Esto abrirá una interfaz gráfica con todas las opciones disponibles de la apli
          - Interfaz por línea de comandos
          - Nodo principal (APP_main)
 
-   4. Explore:
+   4. **Explore:**
       Se lanza un módulo independiente para explorar y mapear automáticamente el entorno.
    
-   5. Segmentation:
+   5. **Segmentation:**
       Se lanza un módulo independiente para segmentar por áreas el mapa seleccionado.
 
-+ MovePerson:
++ **MovePerson:**
 Activando move_person se lanzará el nodo de movimiento de persona en un entorno simulado de gazebo.
          
-+ RVIZ: 
++ **RVIZ:** 
 Activando rviz lanzará el entorno de visualización rviz.
 
-+ Simulación:
++ **Simulación:**
 Por defecto activado, lanza la simulación en Gazebo. Se debe desactivar para utilizar el paquete sobre el Turtlebot real.
 
 
@@ -204,11 +204,11 @@ De igual manera, la interfaz por línea de comandos acepta las mismas órdenes, 
 
 La interfaz visual está compuesta por diferentes áreas:
 
-1. Mapa en escala de grises: Mediante dos clicks (primero indica posición, segundo indica orientación), el robot se desplazará hacia el punto seleccionado.
-2. Cámara: POV del robot.
-3. Mapa segmentado: Al hacer click sobre el mapa segmentado por áreas, el robot realizará una patrullaje perimetral sobre el área seleccionada.
-4. Botones: Los botones permiten una interacción rápida con el robot.
-5. Línea de comandos. Interacción Similar a la interfaz por línea de comandos.
+1. **Mapa en escala de grises:** Mediante dos clicks (primero indica posición, segundo indica orientación), el robot se desplazará hacia el punto seleccionado.
+2. **Cámara: POV del robot.**
+3. **Mapa segmentado:** Al hacer click sobre el mapa segmentado por áreas, el robot realizará una patrullaje perimetral sobre el área seleccionada.
+4. **Botones:** Los botones permiten una interacción rápida con el robot.
+5. **Línea de comandos.** Interacción Similar a la interfaz por línea de comandos.
 
 ## Workspace
 
@@ -329,8 +329,9 @@ El workspace del paquete está distribuido de la siguiente manera:
 <!-- ACKNOWLEDGMENTS -->
 ## Participantes
 
-- José Llorens Megías
-- Asahel Hernández Torné
+- **José Llorens Megías**    (pepellorens.19@gmail.com)
+- **Asahel Hernández Torné** (asahel.ht4@gmail.com)
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
