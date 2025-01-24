@@ -33,9 +33,21 @@
 
 
 <!-- GETTING STARTED -->
-## Introducción
 
-Este repositorio contiene el paquete de ROS security_robot para la asignatura Robots Móviles.
+## Introducción
+![Proyecto R2-G2](./images/icono.png)
+Este repositorio contiene el paquete de ROS security_robot para la asignatura Robots Móviles. 
+
+Este paquete implementa el proyecto R2-G2, un robot guardian inspirado en el mítico R2-D2 y que implementa las siguientes funcionalidades:
+
+- [X] Navegación autónoma 
+- [X] Exploración y mapeado autónomo 
+- [X] Procesado del mapa y segmentación por áreas y 
+- [X] Guardar un perimetro entorno a un punto (patrulla áreas)
+- [X] Patrulla por ruta predefinida 
+- [X] Reconocimiento y seguimiento de personas
+- [X] Búsqueda de QRs y navegación hasta QRs guardados
+- [X] Interfaz gráfica, interacción por voz y control por gestos
 
 ### Prerequisitos
 
@@ -102,7 +114,6 @@ Con estos pasos el paquete ya debería estar correctamente compilado y listo par
 <!-- USAGE EXAMPLES -->
 ## Uso
 
-### Simulación
 Para usar este paquete se ha implementado una interfaz visual que permite lanzar la aplicación de manera cómoda y sencilla en simulación:
 Desde una terminal situada en la carpeta src del paquete:
 ```sh
@@ -110,8 +121,9 @@ Desde una terminal situada en la carpeta src del paquete:
    ```
 
 Esto abrirá una interfaz gráfica con todas las opciones disponibles de la aplicación
-
-![Interfaz de Lanzamiento](./images/gui_capture.png)
+<div align="center">
+<img src="./images/gui_capture.png" alt="Interfaz de Lanzamiento" width="400" height="400">
+</div>
 + Mapa
    Permite escoger el mapa que se desea utilizar en la aplicación. Se leen cargan automáticamente los mapas situados en la carpeta worlds del paquete.
 
@@ -263,19 +275,6 @@ El workspace del paquete está distribuido de la siguiente manera:
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-
-<!-- ROADMAP -->
-## Tareas
-
-- [X] Reconocimiento y seguimiento de personas
-- [X] Navegación autónoma patrulla aleatoria
-- [X] Navegación a un punto concreto
-- [X] Guardar un perimetro entorno a un punto
-- [X] Segmentación por áreas
-- [X] Patrulla por ruta predefinida
-- [X] Interfaz gráfica
 
 <!-- ACKNOWLEDGMENTS -->
 ## Participantes
